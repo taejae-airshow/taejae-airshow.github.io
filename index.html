@@ -1383,9 +1383,10 @@ let emTags = [];
 function renderEmTags() {
   const row = document.getElementById('em-tags-row');
   row.innerHTML = emTags.map((t, i) =>
-    `<span class="dtag">${t}<button class="tag-del" onclick="removeEmTag(${i})">✕</button></span>`
+    `<span class="dtag">${t}<button class="tag-del" style="display:inline;" onclick="removeEmTag(${i})">✕</button></span>`
   ).join('');
 }
+  
 function removeEmTag(i) { emTags.splice(i, 1); renderEmTags(); }
   
 function addEmTag() {
