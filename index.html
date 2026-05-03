@@ -35,6 +35,14 @@ function getGoogleDriveId(url) {
   return m ? m[1] : null;
 }
 
+function getOneDriveEmbedUrl(url) {
+  if (!url) return null;
+  if (url.includes('onedrive.live.com/embed') || url.includes('sharepoint.com')) {
+    return url.replace('/view.aspx', '/embed').replace('?e=', '?action=embedview&e=');
+  }
+  return null;
+}
+
 function playVideo(url) {
   if (!url) return;
   const ytId = getYouTubeId(url);
