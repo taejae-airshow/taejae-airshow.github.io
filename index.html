@@ -1021,82 +1021,94 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
     </div>
   </div>
   
-  <!-- ② Admin용 편집 모달 -->
-  <div class="modal-backdrop" id="edit-modal">
-    <div class="modal-card edit-card">
-      <div class="modal-hdr">
-        <div class="modal-title" id="em-mode-label">New project</div>
-        <button class="modal-close" onclick="closeEditModal()">×</button>
+  <!-- EDIT PAGE (admin only) -->
+  <div class="page" id="p-edit">
+    <div class="dwrap">
+      <button class="backbtn" onclick="go('main')">← Back to gallery</button>
+  
+      <div class="detail-adm-bar">
+        <span class="adm-bar-left" id="em-mode-label">New project</span>
+        <button class="btn-fs" id="em-submit-btn" onclick="submitEditModal()">Add project</button>
       </div>
-      <div class="modal-body">
-        <!-- 제목 -->
-        <div class="field full">
-          <label>Project title</label>
-          <input id="em-title" placeholder="e.g. MindBridge">
+  
+      <!-- Semester -->
+      <div class="sem-box" style="margin-bottom:1.2rem;">
+        <div class="sem-box-lbl">Semester</div>
+        <div class="sem-pills" id="em-sem-pills"></div>
+      </div>
+  
+      <!-- Title -->
+      <div class="field full" style="margin-bottom:1rem;">
+        <label>Project title</label>
+        <input id="em-title" placeholder="e.g. MindBridge: AI Mental Health Companion">
+      </div>
+  
+      <!-- Video -->
+      <div class="field full" style="margin-bottom:1rem;">
+        <label>Video</label>
+        <div class="dvideo no-video" id="em-video">
+          <div class="dvideo-tint" id="em-tint"></div>
+          <div class="dvideo-play">AIR</div>
+          <div class="dvideo-caption">Video can be added later</div>
         </div>
-        <!-- 동영상 placeholder -->
-        <div class="field full">
-          <label>Video</label>
-          <div class="dvideo no-video" id="em-video">
-            <div class="dvideo-tint" id="em-tint"></div>
-            <div class="dvideo-play">AIR</div>
-            <div class="dvideo-caption">Video can be added later</div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <input id="em-video-url" placeholder="Paste video URL…" style="flex:1">
-            <button class="btn-pick" onclick="applyVideoUrl()">Apply</button>
-          </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <input id="em-video-url" placeholder="Paste video URL…" style="flex:1;padding:10px 13px;border:1px solid var(--b);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.95rem;">
+          <button class="btn-pick" onclick="applyVideoUrl()">Apply</button>
         </div>
-        <!-- Semester -->
-        <div class="field full">
-          <label>Semester</label>
-          <div class="sem-pills" id="em-sem-pills"></div>
-          <!-- nsc 블록 동일하게 -->
+      </div>
+  
+      <div class="fg">
+        <!-- Team name -->
+        <div class="field">
+          <label>Team name</label>
+          <input id="em-team" placeholder="e.g. Team Nova">
         </div>
-        <!-- Team / Members / Supervisor -->
-        <div class="field"><label>Team name</label><input id="em-team"></div>
+  
+        <!-- Team members -->
         <div class="field full">
           <label>Team members</label>
           <div class="pick-row">
-            <input id="em-members" readonly>
-            <button class="btn-pick" onclick="openStudentPicker('em')">Select</button>
+            <input id="em-members" placeholder="Select team members" readonly>
+            <button class="btn-pick" onclick="openStudentPicker()">Select</button>
           </div>
         </div>
+  
+        <!-- Supervisor -->
         <div class="field full">
           <label>Supervisor</label>
           <div class="pick-row">
-            <input id="em-sup" readonly>
-            <button class="btn-pick" onclick="openFacultyPicker('em')">Select</button>
+            <input id="em-sup" placeholder="Select supervisor" readonly>
+            <button class="btn-pick" onclick="openFacultyPicker()">Select</button>
           </div>
         </div>
+  
         <!-- Description -->
         <div class="field full">
           <label>Description</label>
-          <textarea id="em-desc"></textarea>
+          <textarea id="em-desc" placeholder="Describe the research question and approach…"></textarea>
         </div>
+  
         <!-- Tags -->
         <div class="field full">
           <label>Tags</label>
-          <div class="tags-row" id="em-tags-row"></div>
+          <div class="tags-row" id="em-tags-row" style="margin-bottom:8px;"></div>
           <div class="tag-add-row">
-            <input id="em-tag-input" placeholder="Add tag…" onkeydown="onEmTagKeydown(event)">
-            <span class="tag-hint">Enter to add</span>
+            <input id="em-tag-input" placeholder="Add tag… (press Enter)" onkeydown="onEmTagKeydown(event)">
+            <span class="tag-hint">Press Enter to add</span>
           </div>
         </div>
+  
         <!-- Card color -->
         <div class="field">
           <label>Card color</label>
           <div class="swatches" id="em-swatches"></div>
         </div>
-        <!-- Comments (edit mode에서만, 기존 프로젝트일 때) -->
-        <div id="em-cmts-section" style="display:none">
-          <div class="cmts-title">Comments</div>
-          <div id="em-cmt-list"></div>
-        </div>
       </div>
-      <div class="modal-foot">
-        <button class="btn-fc2" onclick="closeEditModal()">Cancel</button>
-        <button class="btn-fs" id="em-submit-btn" onclick="submitEditModal()">Add project</button>
+  
+      <!-- Comments (edit mode only) -->
+      <div id="em-cmts-section" style="display:none;margin-top:2rem;">
+        <div class="cmts-title">Comments</div>
+        <div id="em-cmt-list"></div>
       </div>
     </div>
   </div>
@@ -1200,7 +1212,7 @@ function toggleAbout() {
 }
 function go(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-  document.getElementById({ main: 'p-main', pw: 'p-pw' }[p]).classList.add('active');
+  document.getElementById({ main: 'p-main', edit: 'p-edit', pw: 'p-pw' }[p]).classList.add('active');
   if (p !== 'detail') window.scrollTo(0, 0);
 }
 
@@ -1279,10 +1291,12 @@ function openEditModal(mode, idx, proj) {
     document.getElementById('em-cmts-section').style.display = 'none';
   }
 
-  document.getElementById('edit-modal').classList.add('open');
+  go('edit');
+
 }
+  
 function closeEditModal() {
-  document.getElementById('edit-modal').classList.remove('open');
+  go('main');
 }
 
 function openAddForm() {
