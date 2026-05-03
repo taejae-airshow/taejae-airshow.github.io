@@ -1185,7 +1185,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         </div>
         <div style="display:flex;gap:8px;margin-top:8px;">
           <input id="em-video-url" placeholder="Paste video URL…" oninput="onVideoUrlInput()" style="flex:1;padding:10px 13px;border:1px solid var(--b);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.95rem;">
-          <button class="btn-pick" id="video-save-btn" onclick="applyVideoUrl()">Save</button>
+          <button class="btn-pick" id="video-save-btn" onclick="applyVideoUrl()">Apply</button>
         </div>
       </div>
   
@@ -1636,7 +1636,7 @@ function applyVideoUrl() {
 
   // Saved 상태로 변경
   if (btn) {
-    btn.textContent = 'Saved';
+    btn.textContent = '✓ Applied';
     btn.disabled = true;
     btn.style.opacity = '.4';
     btn.style.cursor = 'default';
@@ -1646,7 +1646,7 @@ function applyVideoUrl() {
 function onVideoUrlInput() {
   const btn = document.getElementById('video-save-btn');
   if (!btn) return;
-  btn.textContent = 'Save';
+  btn.textContent = 'Apply';
   btn.disabled = false;
   btn.style.opacity = '1';
   btn.style.cursor = 'pointer';
