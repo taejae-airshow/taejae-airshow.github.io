@@ -1241,7 +1241,7 @@ async function openStudentPicker() {
   try {
     studentList = await sbGet(
       TBL_STUDENTS,
-      'select=id,name_en,email&order=name_en.asc'
+      'select=id,name_en,email,cohort&order=name_en.asc'
     );
 
     renderStudentPicker();
@@ -1267,7 +1267,11 @@ function renderStudentPicker() {
         <input type="checkbox" data-picker-index="${i}" ${checked}>
         <div>
           <div class="modal-main">${formatStudentName(s)}</div>
-          <div class="modal-sub">${s.id || ''}${s.email ? ' · ' + s.email : ''}</div>
+          <div class="modal-sub">
+            ${s.id || ''}
+            ${s.email ? ' · ' + s.email : ''}
+            ${s.cohort ? ' · Cohort ' + s.cohort : ''}
+          </div>
         </div>
       </label>
     `;
