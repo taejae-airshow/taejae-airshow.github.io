@@ -860,6 +860,95 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       </div>
     </div>
 
+    <!-- Inline Add Form -->
+    <div class="add-form-wrap" id="add-form-wrap">
+      <div class="add-form-hdr">
+        <span>New project</span>
+        <button class="afc" onclick="closeAddForm()">✕</button>
+      </div>
+    
+      <div class="sem-box">
+        <div class="sem-box-lbl">Semester</div>
+        <div class="sem-pills" id="sem-pills"></div>
+    
+        <div class="nsc" id="nsc">
+          <div class="nsc-lbl">Create a new semester</div>
+          <div class="nsc-row">
+            <select class="nsc-sel" id="nsc-term">
+              <option>Spring</option><option>Summer</option>
+              <option selected>Fall</option><option>Winter</option>
+            </select>
+    
+            <input class="nsc-yr" id="nsc-yr" type="number"
+              min="2020" max="2040" placeholder="2026">
+    
+            <span class="nsc-preview" id="nsc-preview">—</span>
+    
+            <button class="btn-nsc" id="btn-nsc"
+              onclick="createSem()" disabled>Create</button>
+          </div>
+    
+          <div class="nsc-dup" id="nsc-dup">
+            A semester with this name already exists.
+          </div>
+        </div>
+      </div>
+    
+      <div class="fg">
+        <div class="field full">
+          <label>Project title</label>
+          <input id="f-title"
+            placeholder="e.g. MindBridge: AI Mental Health Companion">
+        </div>
+    
+        <div class="field">
+          <label>Team name</label>
+          <input id="f-team" placeholder="e.g. Team Nova">
+        </div>
+    
+        <div class="field full">
+          <label>Team members</label>
+          <div class="pick-row">
+            <input id="f-members"
+              placeholder="Kim Jiwon, Lee Soyeon" readonly>
+            <button class="btn-pick"
+              onclick="openStudentPicker()" type="button">Select</button>
+          </div>
+        </div>
+    
+        <div class="field full">
+          <label>Supervisor</label>
+          <div class="pick-row">
+            <input id="f-sup"
+              placeholder="Prof. Name" readonly>
+            <button class="btn-pick"
+              onclick="openFacultyPicker()" type="button">Select</button>
+          </div>
+        </div>
+    
+        <div class="field full">
+          <label>Description</label>
+          <textarea id="f-desc"
+            placeholder="Describe the research question and approach…"></textarea>
+        </div>
+    
+        <div class="field">
+          <label>Tags</label>
+          <input id="f-tags" placeholder="AI, Health, NLP">
+        </div>
+    
+        <div class="field">
+          <label>Card color</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+      </div>
+    
+      <div class="form-foot">
+        <button class="btn-fc2" onclick="closeAddForm()">Cancel</button>
+        <button class="btn-fs" onclick="submitProject()">Add project</button>
+      </div>
+    </div>
+
     <!-- LEADERBOARD -->
     <div class="sec" id="sec-leaderboard">
       <div class="sec-hdr"><div class="stitle">Leaderboard</div></div>
