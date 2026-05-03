@@ -1232,7 +1232,28 @@ function openEditForm(proj) {
   document.getElementById('project-editor').classList.add('open');
 }
   
-function closeAddForm() { document.getElementById('add-form-wrap').classList.remove('open'); }
+function renderEditorVideo(proj) {
+  const thumb = document.getElementById('f-video-thumb');
+  const tint  = document.getElementById('f-video-tint');
+  const play  = thumb.querySelector('.dvideo-play');
+  const caption = thumb.querySelector('.dvideo-caption');
+
+  if (proj && proj.video_url) {
+    if (tint) tint.style.background = proj.card_color || '#e8f4f8';
+    thumb.classList.add('has-video');
+    thumb.classList.remove('no-video');
+    play.textContent = '▶';
+    caption.textContent = 'Click to play';
+  } else {
+    if (tint) tint.style.background = '';
+    thumb.classList.add('no-video');
+    thumb.classList.remove('has-video');
+    play.textContent = 'AIR';
+    caption.textContent = 'Video can be added later';
+  }
+}
+
+function closeAddForm() { document.getElementById('project-editor').classList.remove('open'); }
 let pickerMode = null;
 
 function formatFacultyName(f) {
