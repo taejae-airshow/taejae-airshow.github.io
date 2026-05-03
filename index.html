@@ -1120,12 +1120,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
           <div class="swatches" id="em-swatches"></div>
         </div>
       </div>
-  
+
       <!-- Comments (edit mode only) -->
       <div id="em-cmts-section" style="display:none;margin-top:2rem;">
         <div class="cmts-title">Comments</div>
         <div id="em-cmt-list"></div>
       </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--b);">
+        <button class="btn-fc2" onclick="go('main')">← Back to gallery</button>
+        <button class="btn-fs" onclick="submitEditModal()" id="em-submit-btn-bottom">Add project</button>
+      </div>
+      
     </div>
   </div>
 
