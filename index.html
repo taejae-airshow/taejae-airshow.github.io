@@ -2225,7 +2225,6 @@ async function openViewPage(idx, proj) {
     document.getElementById('vm-video-url-display').style.display = 'none';
   }
   play.style.opacity = '1'; play.style.transform = 'scale(1)'; caption.style.opacity = '1';
-  if (proj.video_url) embedVideoPreview('.page#p-view .dvideo-wrap', proj.video_url);
 
 
   // team / members / supervisor
@@ -2272,6 +2271,8 @@ async function openViewPage(idx, proj) {
   }
 
   go('view');
+  if (proj.video_url) embedVideoPreview('#p-view .dvideo-wrap', proj.video_url);
+
 }
 
 function closeViewPage() {
