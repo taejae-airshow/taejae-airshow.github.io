@@ -578,6 +578,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .dtitle-input{font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:400;letter-spacing:-.03em;width:100%;}
 .ddesc-input{font-size:1rem;line-height:1.85;color:rgba(26,26,46,.72);min-height:100px;}
 
+.pthumb.no-video,
+.arc-thumb-sm.no-video,
+.dvideo.no-video {
+  background: #1a1a2e;
+}
+
+.pthumb.no-video .pthumb-tint,
+.arc-thumb-sm.no-video .arc-thumb-tint,
+.dvideo.no-video .dvideo-tint {
+  opacity: .55;
+}
+
+.pthumb.no-video .pthumb-play,
+.arc-thumb-sm.no-video .arc-thumb-play,
+.dvideo.no-video .dvideo-play {
+  opacity: 1;
+  transform: scale(1);
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: .04em;
+}
+
+.pthumb.no-video .pthumb-play {
+  font-size: .9rem;
+}
+
+.arc-thumb-sm.no-video .arc-thumb-play {
+  font-size: .7rem;
+}
+
+.dvideo.no-video .dvideo-play {
+  width: 72px;
+  height: 72px;
+  font-size: 1.1rem;
+}
+
+.pthumb.has-video .pthumb-tint,
+.arc-thumb-sm.has-video .arc-thumb-tint,
+.dvideo.has-video .dvideo-tint {
+  opacity: .13;
+}
+  
 /* video — detail */
 .dvideo-wrap{position:relative;margin:1.4rem 0;border-radius:16px;overflow:hidden;}
 .dvideo{width:100%;aspect-ratio:16/9;background:#1a1a2e;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;}
@@ -1241,6 +1282,7 @@ async function submitProject() {
       description: document.getElementById('f-desc').value.trim(),
       tags,
       card_color: selColor,
+      video_url: null,
     });
     closeAddForm();
     showToast('Project added!');
@@ -1275,10 +1317,10 @@ function renderGallery() {
     c.onclick = () => showDetail(idx, p);
     c.innerHTML = `
       <button class="pdel" onclick="event.stopPropagation();delProject('${p.id}')">✕</button>
-      <div class="pthumb">
-        <div class="pthumb-tint" style="background:${p.card_color||'#e8f4f8'}"></div>
-        <div class="pthumb-play">▶</div>
-        <div class="pthumb-label">Video</div>
+      <div class="pthumb ${p.video_url ? 'has-video' : 'no-video'}">
+        <div class="pthumb-tint" style="background:${p.card_color || '#e8f4f8'}"></div>
+        <div class="pthumb-play">${p.video_url ? '▶' : 'AIR'}</div>
+        <div class="pthumb-label">${p.video_url ? 'Video' : 'Video can be added later'}</div>
       </div>
       <div class="pbody">
         <div class="pname">${p.title}</div>
@@ -1366,9 +1408,9 @@ async function renderArchiveContent() {
       projs.forEach(p => {
         const c = document.createElement('div'); c.className = 'arc-card-sm';
         c.innerHTML = `
-          <div class="arc-thumb-sm">
-            <div class="arc-thumb-tint" style="background:${p.card_color||'#e8f4f8'}"></div>
-            <div class="arc-thumb-play">▶</div>
+          <div class="arc-thumb-sm ${p.video_url ? 'has-video' : 'no-video'}">
+            <div class="arc-thumb-tint" style="background:${p.card_color || '#e8f4f8'}"></div>
+            <div class="arc-thumb-play">${p.video_url ? '▶' : 'AIR'}</div>
           </div>
           <div class="arc-body-sm">
             <div class="arc-name-sm">${p.title}</div>
@@ -1385,7 +1427,7 @@ async function renderArchiveContent() {
         row.innerHTML = `
           <div class="arc-icon">
             <div class="arc-icon-tint" style="background:${p.card_color||'#e8f4f8'}"></div>
-            <span class="arc-icon-play">▶</span>
+            <span class="arc-icon-play">${p.video_url ? '▶' : 'AIR'}</span>
           </div>
           <div>
             <div class="arc-list-name">${p.title}</div>
@@ -1552,13 +1594,32 @@ function applyDetailAdmMode() {
   document.querySelectorAll('.meta-editable').forEach(el => el.readOnly = !isAdm);
   setSaveBtn('clean'); detailDirty = false;
 }
+function renderDetailVideo(proj) {
+  const thumb = document.getElementById('d-thumb');
+  const play = thumb.querySelector('.dvideo-play');
+  const caption = thumb.querySelector('.dvideo-caption');
+
+  document.getElementById('d-tint').style.background = proj.card_color || '#e8f4f8';
+
+  if (proj.video_url) {
+    thumb.classList.add('has-video');
+    thumb.classList.remove('no-video');
+    play.textContent = '▶';
+    caption.textContent = 'Click to play';
+  } else {
+    thumb.classList.add('no-video');
+    thumb.classList.remove('has-video');
+    play.textContent = 'AIR';
+    caption.textContent = 'Video can be added later';
+  }
+}
 
 async function showDetail(idx, proj) {
   detailIdx = idx;
   detailProjId = proj.id;
   detailDirty = false;
   document.getElementById('d-title-input').value = proj.title;
-  document.getElementById('d-tint').style.background = proj.card_color || '#e8f4f8';
+  renderDetailVideo(proj);
   document.getElementById('d-desc-input').value = proj.description || '';
 
   // meta
