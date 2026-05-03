@@ -2212,6 +2212,7 @@ async function checkPw() {
 
   go('main');
 }
+  
 async function exitAdm() {
   await supabaseClient.auth.signOut();
 
@@ -2221,11 +2222,9 @@ async function exitAdm() {
   document.getElementById('adm-bar').classList.add('hide');
   document.getElementById('adm-btn').textContent = '⚙ Admin';
 
-  closeAddForm();
+  go('main');
   renderGallery();
   renderLB();
-
-  //if (detailIdx !== null) applyDetailAdmMode();
 }
 
 // ── SWATCHES ──
