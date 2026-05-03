@@ -22,6 +22,8 @@ const TBL_PROJECTS  = 'air_projects';
 const TBL_VOTES     = 'air_votes';
 const TBL_COMMENTS  = 'air_comments';
 const TBL_AWARDS    = 'air_awards';
+const TBL_FACULTY = 'faculty_profiles';
+const TBL_STUDENTS = 'students';
 
 // ── VOTER TOKEN (anonymous voting, 30-day cookie) ──
 function getCookie(name) {
@@ -303,6 +305,112 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .btn-pill.done{background:var(--txt);color:#fff;border-color:var(--txt);}
 
 /* ── ADD FORM ── */
+.pick-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pick-row input {
+  flex: 1;
+}
+
+.btn-pick {
+  padding: 10px 13px;
+  border: 1px solid var(--b);
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--txt);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem;
+  white-space: nowrap;
+}
+
+.btn-pick:hover {
+  background: var(--ab);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,26,46,.32);
+  z-index: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pad);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-card {
+  width: min(760px, 100%);
+  max-height: 82vh;
+  background: var(--card);
+  border: 1px solid var(--b);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-hdr {
+  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--m);
+  font-size: 1.35rem;
+}
+
+.modal-body {
+  padding: 1rem 1.4rem;
+  overflow: auto;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(26,26,46,.07);
+  align-items: start;
+}
+
+.modal-main {
+  font-weight: 600;
+  font-size: .95rem;
+}
+
+.modal-sub {
+  font-size: .82rem;
+  color: var(--m);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.modal-foot {
+  padding: 1rem 1.4rem;
+  border-top: 1px solid var(--b);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
 .add-form-wrap{background:var(--ab);border:1px solid var(--b2);border-radius:16px;padding:1.5rem 1.8rem;margin-bottom:1.5rem;display:none;}
 .add-form-wrap.open{display:block;}
 .add-form-hdr{font-weight:600;font-size:1.05rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;}
@@ -596,6 +704,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="modal-backdrop" id="picker-modal">
+    <div class="modal-card">
+      <div class="modal-hdr">
+        <div class="modal-title" id="picker-title">Select</div>
+        <button class="modal-close" onclick="closePicker()">×</button>
+      </div>
+      <div class="modal-body" id="picker-body"></div>
+      <div class="modal-foot">
+        <button class="btn-fc2" onclick="closePicker()">Cancel</button>
+        <button class="btn-fs" onclick="savePicker()">Save</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MAIN PAGE -->
   <div class="page active" id="p-main">
@@ -678,8 +799,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         <div class="fg">
           <div class="field full"><label>Project title</label><input id="f-title" placeholder="e.g. MindBridge: AI Mental Health Companion"></div>
           <div class="field"><label>Team name</label><input id="f-team" placeholder="e.g. Team Nova"></div>
-          <div class="field"><label>Supervisor</label><input id="f-sup" placeholder="Prof. Name"></div>
-          <div class="field full"><label>Team members</label><input id="f-members" placeholder="Kim Jiwon, Lee Soyeon"></div>
+          <div class="field">
+            <label>Supervisor</label>
+            <div class="pick-row">
+              <input id="f-sup" placeholder="Prof. Name" readonly>
+              <button class="btn-pick" onclick="openFacultyPicker()" type="button">Select</button>
+            </div>
+          </div>
+          
+          <div class="field full">
+            <label>Team members</label>
+            <div class="pick-row">
+              <input id="f-members" placeholder="Kim Jiwon, Lee Soyeon" readonly>
+              <button class="btn-pick" onclick="openStudentPicker()" type="button">Select</button>
+            </div>
+          </div>
           <div class="field full"><label>Description</label><textarea id="f-desc" placeholder="Describe the research question and approach…"></textarea></div>
           <div class="field"><label>Tags</label><input id="f-tags" placeholder="AI, Health, NLP"></div>
           <div class="field"><label>Card color</label><div class="swatches" id="swatches"></div></div>
@@ -877,6 +1011,10 @@ let detailDirty = false;
 let semesters = [];        // local list for sem pills
 let projects = [];         // local gallery projects (active sem)
 let detailComments = [];   // comments for current detail view
+let facultyList = [];
+let studentList = [];
+let selectedFaculty = [];
+let selectedStudents = [];
 
 // ── UTILS ──
 function showToast(msg) {
@@ -945,6 +1083,128 @@ async function createSem() {
 
 function openAddForm() { document.getElementById('add-form-wrap').classList.add('open'); renderSemPills(); initSwatches(); }
 function closeAddForm() { document.getElementById('add-form-wrap').classList.remove('open'); }
+let pickerMode = null;
+
+function formatFacultyName(f) {
+  const name = f.name || f.full_name || f.faculty_name || f.email || '';
+  const honorific = f.honorific || f.honorifix || 'Prof.';
+  return `${honorific} ${name}`.trim();
+}
+
+function formatStudentName(s) {
+  return s.name || s.full_name || s.student_name || s.email || s.id || '';
+}
+
+async function openFacultyPicker() {
+  pickerMode = 'faculty';
+  document.getElementById('picker-title').textContent = 'Select supervisor';
+  document.getElementById('picker-body').innerHTML = '<p style="color:var(--m);font-size:.9rem;">Loading faculty…</p>';
+  document.getElementById('picker-modal').classList.add('open');
+
+  try {
+    facultyList = await sbGet(
+      TBL_FACULTY,
+      'select=*&order=name.asc'
+    );
+
+    renderFacultyPicker();
+  } catch (err) {
+    document.getElementById('picker-body').innerHTML =
+      `<p style="color:var(--a);font-size:.9rem;">Failed to load faculty: ${err.message}</p>`;
+  }
+}
+
+function renderFacultyPicker() {
+  const body = document.getElementById('picker-body');
+
+  if (!facultyList.length) {
+    body.innerHTML = '<p style="color:var(--m);font-size:.9rem;">No faculty found.</p>';
+    return;
+  }
+
+  body.innerHTML = facultyList.map((f, i) => {
+    const name = f.name || f.full_name || f.faculty_name || '';
+    const email = f.email || '';
+    const program = f.program || f.affiliated_program || f.home_program || '';
+    const checked = selectedFaculty.some(x => (x.email || x.name) === (email || name)) ? 'checked' : '';
+
+    return `
+      <label class="modal-row">
+        <input type="checkbox" data-picker-index="${i}" ${checked}>
+        <div>
+          <div class="modal-main">${formatFacultyName(f)}</div>
+          <div class="modal-sub">${email}${program ? ' · ' + program : ''}</div>
+        </div>
+      </label>
+    `;
+  }).join('');
+}
+
+async function openStudentPicker() {
+  pickerMode = 'student';
+  document.getElementById('picker-title').textContent = 'Select team members';
+  document.getElementById('picker-body').innerHTML = '<p style="color:var(--m);font-size:.9rem;">Loading students…</p>';
+  document.getElementById('picker-modal').classList.add('open');
+
+  try {
+    studentList = await sbGet(
+      TBL_STUDENTS,
+      'select=id,name,email&order=name.asc'
+    );
+
+    renderStudentPicker();
+  } catch (err) {
+    document.getElementById('picker-body').innerHTML =
+      `<p style="color:var(--a);font-size:.9rem;">Failed to load students: ${err.message}</p>`;
+  }
+}
+
+function renderStudentPicker() {
+  const body = document.getElementById('picker-body');
+
+  if (!studentList.length) {
+    body.innerHTML = '<p style="color:var(--m);font-size:.9rem;">No students found.</p>';
+    return;
+  }
+
+  body.innerHTML = studentList.map((s, i) => {
+    const checked = selectedStudents.some(x => x.id === s.id) ? 'checked' : '';
+
+    return `
+      <label class="modal-row">
+        <input type="checkbox" data-picker-index="${i}" ${checked}>
+        <div>
+          <div class="modal-main">${formatStudentName(s)}</div>
+          <div class="modal-sub">${s.id || ''}${s.email ? ' · ' + s.email : ''}</div>
+        </div>
+      </label>
+    `;
+  }).join('');
+}
+
+function closePicker() {
+  document.getElementById('picker-modal').classList.remove('open');
+  pickerMode = null;
+}
+
+function savePicker() {
+  const checkedIndexes = [...document.querySelectorAll('#picker-body input[type="checkbox"]:checked')]
+    .map(el => Number(el.dataset.pickerIndex));
+
+  if (pickerMode === 'faculty') {
+    selectedFaculty = checkedIndexes.map(i => facultyList[i]);
+    document.getElementById('f-sup').value =
+      selectedFaculty.map(formatFacultyName).join(', ');
+  }
+
+  if (pickerMode === 'student') {
+    selectedStudents = checkedIndexes.map(i => studentList[i]);
+    document.getElementById('f-members').value =
+      selectedStudents.map(formatStudentName).join(', ');
+  }
+
+  closePicker();
+}
 
 async function submitProject() {
   const title = document.getElementById('f-title').value.trim();
@@ -958,8 +1218,14 @@ async function submitProject() {
       semester_id: semId,
       title,
       team_name: document.getElementById('f-team').value.trim(),
-      supervisor_email: document.getElementById('f-sup').value.trim(),
-      member_ids: document.getElementById('f-members').value.split(',').map(m => m.trim()).filter(Boolean),
+    
+      supervisor_emails: selectedFaculty.map(f => f.email).filter(Boolean),
+      supervisor_names: selectedFaculty.map(formatFacultyName).filter(Boolean),
+    
+      member_ids: selectedStudents.length
+        ? selectedStudents.map(s => String(s.id)).filter(Boolean)
+        : document.getElementById('f-members').value.split(',').map(m => m.trim()).filter(Boolean),
+    
       description: document.getElementById('f-desc').value.trim(),
       tags,
       card_color: selColor,
@@ -1005,7 +1271,13 @@ function renderGallery() {
       <div class="pbody">
         <div class="pname">${p.title}</div>
         <div class="pteam">${p.team_name||''}</div>
-        <div class="psup">${p.supervisor_email ? 'Sup. ' + p.supervisor_email : ''}</div>
+        <div class="psup">${
+          p.supervisor_names?.length
+            ? 'Sup. ' + p.supervisor_names.join(', ')
+            : p.supervisor_email
+              ? 'Sup. ' + p.supervisor_email
+              : ''
+        }</div>
         <div class="pfoot">
           <div style="display:flex;align-items:center;gap:5px">
             <button class="hbtn${liked?' liked':''}" onclick="event.stopPropagation();handleVote('${p.id}')">${liked?'❤️':'🤍'}</button>
