@@ -855,56 +855,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         </div>
       </div>
 
-      <!-- Inline Add Form -->
-      <div class="add-form-wrap" id="add-form-wrap">
-        <div class="add-form-hdr">
-          <span>New project</span>
-          <button class="afc" onclick="closeAddForm()">✕</button>
-        </div>
-        <div class="sem-box">
-          <div class="sem-box-lbl">Semester</div>
-          <div class="sem-pills" id="sem-pills"></div>
-          <div class="nsc" id="nsc">
-            <div class="nsc-lbl">Create a new semester</div>
-            <div class="nsc-row">
-              <select class="nsc-sel" id="nsc-term">
-                <option>Spring</option><option>Summer</option>
-                <option selected>Fall</option><option>Winter</option>
-              </select>
-              <input class="nsc-yr" id="nsc-yr" type="number" min="2020" max="2040" placeholder="2026">
-              <span class="nsc-preview" id="nsc-preview">—</span>
-              <button class="btn-nsc" id="btn-nsc" onclick="createSem()" disabled>Create</button>
-            </div>
-            <div class="nsc-dup" id="nsc-dup">A semester with this name already exists.</div>
-          </div>
-        </div>
-        <div class="fg">
-          <div class="field full"><label>Project title</label><input id="f-title" placeholder="e.g. MindBridge: AI Mental Health Companion"></div>
-          <div class="field"><label>Team name</label><input id="f-team" placeholder="e.g. Team Nova"></div>
-          <div class="field full">
-            <label>Team members</label>
-            <div class="pick-row">
-              <input id="f-members" placeholder="Kim Jiwon, Lee Soyeon" readonly>
-              <button class="btn-pick" onclick="openStudentPicker()" type="button">Select</button>
-            </div>
-          </div>
-          <div class="field full">
-            <label>Supervisor</label>
-            <div class="pick-row">
-              <input id="f-sup" placeholder="Prof. Name" readonly>
-              <button class="btn-pick" onclick="openFacultyPicker()" type="button">Select</button>
-            </div>
-          </div>
-          <div class="field full"><label>Description</label><textarea id="f-desc" placeholder="Describe the research question and approach…"></textarea></div>
-          <div class="field"><label>Tags</label><input id="f-tags" placeholder="AI, Health, NLP"></div>
-          <div class="field"><label>Card color</label><div class="swatches" id="swatches"></div></div>
-        </div>
-        <div class="form-foot">
-          <button class="btn-fc2" onclick="closeAddForm()">Cancel</button>
-          <button class="btn-fs" onclick="submitProject()">Add project</button>
-        </div>
-      </div>
-
       <div class="ggrid" id="ggrid">
         <div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--m);font-size:.95rem;">Loading projects…</div>
       </div>
@@ -1165,16 +1115,44 @@ async function createSem() {
 function openAddForm() {
   const activeSem = appData.semesters.find(s => s.status === 'active');
 
-  if (activeSem) {
-    selSem = activeSem.id;
-  } else if (!selSem && semesters.length) {
-    selSem = semesters[0].id;
-  }
+  // "새 프로젝트" 상태
+  detailIdx = null;
+  detailProjId = null;
+  detailDirty = true;
 
-  document.getElementById('add-form-wrap').classList.add('open');
-  renderSemPills();
-  initSwatches();
+  // 기본값 세팅
+  document.getElementById('d-title-input').value = '';
+  document.getElementById('d-desc-input').value = '';
+
+  // meta 초기화
+  const meta = document.getElementById('d-meta');
+  meta.innerHTML = `
+    <div class="mitem">
+      <div class="mlbl">Team</div>
+      <input class="mval-input meta-editable" data-key="team_name" value="">
+    </div>
+    <div class="mitem">
+      <div class="mlbl">Members</div>
+      <input class="mval-input meta-editable" data-key="members" value="">
+    </div>
+    <div class="mitem">
+      <div class="mlbl">Supervisor</div>
+      <input class="mval-input meta-editable" data-key="supervisor_email" value="">
+    </div>
+    <div class="mitem">
+      <div class="mlbl">Semester</div>
+      <input class="mval-input meta-editable" data-key="semester"
+        value="${activeSem?.name || ''}" readonly>
+    </div>
+  `;
+
+  renderDetailTags([]);
+  renderDetailVideo({}); // no video 상태
+
+  applyDetailAdmMode();
+  go('detail');
 }
+  
 function closeAddForm() { document.getElementById('add-form-wrap').classList.remove('open'); }
 let pickerMode = null;
 
@@ -1715,26 +1693,58 @@ function onTagKeydown(e) {
   }
   inp.value = ''; e.preventDefault();
 }
+  
 async function saveDetail() {
-  if (!detailDirty || detailIdx === null) return;
-  const p = appData.projects[detailIdx];
+  if (!detailDirty) return;
+
   const updates = {
     title: document.getElementById('d-title-input').value,
     description: document.getElementById('d-desc-input').value,
-    tags: p.tags,
+    tags: appData.projects[detailIdx]?.tags || [],
   };
+
   document.querySelectorAll('.meta-editable').forEach(el => {
     const k = el.dataset.key;
     if (k === 'team_name') updates.team_name = el.value;
     if (k === 'supervisor_email') updates.supervisor_email = el.value;
   });
+
   try {
-    await adminUpdateProject(detailProjId, updates);
-    setSaveBtn('saved'); detailDirty = false;
-    Object.assign(p, updates);
-    renderGallery();
-    showToast('Changes saved.');
-  } catch (err) { showToast('Error: ' + err.message); }
+    if (detailProjId) {
+      // ✅ EDIT
+      await adminUpdateProject(detailProjId, updates);
+    
+    } else {
+      // ✅ ADD
+      await adminSaveProject({
+        ...updates,
+    
+        semester_id: appData.semesters.find(s => s.status === 'active')?.id,
+    
+        // 👇 핵심 수정
+        member_ids: selectedStudents.map(s => String(s.id)).filter(Boolean),
+    
+        supervisor_emails: selectedFaculty.map(f => f.email).filter(Boolean),
+    
+        supervisor_names: selectedFaculty
+          .map(f => formatFacultyName(f))
+          .filter(Boolean),
+    
+        card_color: SW_COLORS?.[0] || '#e8f4f8',
+        video_url: null,
+      });
+    }
+
+    setSaveBtn('saved');
+    detailDirty = false;
+
+    showToast(detailProjId ? 'Changes saved.' : 'Project created.');
+    await loadAll();
+    go('main');
+
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
 }
 
 function updateDHeart() {
