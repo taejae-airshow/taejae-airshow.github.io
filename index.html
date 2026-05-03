@@ -165,7 +165,7 @@ async function toggleVote(projectId) {
       appData.votes[projectId] = (appData.votes[projectId] || 0) + 1;
     }
     renderGallery();
-    if (detailIdx !== null) updateDHeart();
+    //if (detailIdx !== null) updateDHeart();
   } catch (err) {
     console.error('Vote error:', err);
     showToast('Vote error: ' + err.message);
@@ -1166,7 +1166,7 @@ function toggleAbout() {
 }
 function go(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-  document.getElementById({ main: 'p-main', detail: 'p-detail', pw: 'p-pw' }[p]).classList.add('active');
+  document.getElementById({ main: 'p-main', pw: 'p-pw' }[p]).classList.add('active');
   if (p !== 'detail') window.scrollTo(0, 0);
 }
 
@@ -1376,7 +1376,7 @@ function applyVideoUrl() {
   }
 }
   
-function closeAddForm() { document.getElementById('add-form-wrap').classList.remove('open'); }
+//function closeAddForm() { document.getElementById('add-form-wrap').classList.remove('open'); }
 let pickerMode = null;
 
 function formatFacultyName(f) {
@@ -2080,7 +2080,7 @@ async function checkPw() {
   renderGallery();
   renderLB();
 
-  if (detailIdx !== null) applyDetailAdmMode();
+  //if (detailIdx !== null) applyDetailAdmMode();
 
   go('main');
 }
@@ -2097,7 +2097,7 @@ async function exitAdm() {
   renderGallery();
   renderLB();
 
-  if (detailIdx !== null) applyDetailAdmMode();
+  //if (detailIdx !== null) applyDetailAdmMode();
 }
 
 // ── SWATCHES ──
