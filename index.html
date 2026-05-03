@@ -1107,10 +1107,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         <!-- Tags -->
         <div class="field full">
           <label>Tags</label>
-          <div class="tags-row" id="em-tags-row" style="margin-bottom:8px;"></div>
-          <div class="tag-add-row">
-            <input id="em-tag-input" placeholder="Add tag… (press Enter)" onkeydown="onEmTagKeydown(event)">
-            <span class="tag-hint">Press Enter to add</span>
+          <div class="tags-row" id="em-tags-row" style="margin-bottom:8px;flex-wrap:wrap;gap:6px;"></div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+            <input class="tag-input" id="em-tag-input" placeholder="Add tag…"
+              onkeydown="onEmTagKeydown(event)"
+              style="flex:1;padding:8px 12px;border:1px solid var(--b);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;">
+            <button class="btn-pick" type="button" onclick="addEmTag()">Add tag</button>
           </div>
         </div>
   
@@ -1296,6 +1298,11 @@ function openEditModal(mode, idx, proj) {
   document.getElementById('em-team').value = proj?.team_name || '';
   document.getElementById('em-desc').value = proj?.description || '';
 
+  selectedFaculty = [];
+  selectedStudents = [];
+  document.getElementById('em-sup').value = proj?.supervisor_names?.join(', ') || proj?.supervisor_email || '';
+  document.getElementById('em-members').value = (proj?.member_ids || []).join(', ');
+
   // video
   renderEmVideo(proj);
 
@@ -1362,12 +1369,23 @@ function renderEmTags() {
   ).join('');
 }
 function removeEmTag(i) { emTags.splice(i, 1); renderEmTags(); }
-function onEmTagKeydown(e) {
-  if (e.key !== 'Enter') return;
+  
+function addEmTag() {
   const inp = document.getElementById('em-tag-input');
   const val = inp.value.trim();
-  if (val && !emTags.includes(val)) { emTags.push(val); renderEmTags(); }
-  inp.value = ''; e.preventDefault();
+  if (!val) return;
+  if (!emTags.includes(val)) {
+    emTags.push(val);
+    renderEmTags();
+  }
+  inp.value = '';
+  inp.focus();
+}
+
+function onEmTagKeydown(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  addEmTag();
 }
 
 async function loadAndRenderEmComments(projectId) {
