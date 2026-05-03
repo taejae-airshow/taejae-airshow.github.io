@@ -307,17 +307,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 
 /* ── ADD FORM ── */
 .pick-row {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
   align-items: center;
 }
 
 .pick-row input {
-  flex: 1;
+  width: 100%;
 }
 
 .btn-pick {
-  padding: 10px 13px;
+  padding: 10px 18px;
   border: 1px solid var(--b);
   border-radius: 9px;
   background: var(--card);
@@ -800,7 +801,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         <div class="fg">
           <div class="field full"><label>Project title</label><input id="f-title" placeholder="e.g. MindBridge: AI Mental Health Companion"></div>
           <div class="field"><label>Team name</label><input id="f-team" placeholder="e.g. Team Nova"></div>
-          <div class="field">
+          <div class="field full">
             <label>Supervisor</label>
             <div class="pick-row">
               <input id="f-sup" placeholder="Prof. Name" readonly>
