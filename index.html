@@ -953,71 +953,119 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
     <div class="footer">AIRshow · Taejae University AIR Program · Advanced Independent Research</div>
   </div><!-- /p-main -->
 
-  <!-- DETAIL PAGE -->
-  <div class="page" id="p-detail">
-    <div class="dwrap" id="detail-wrap">
-      <button class="backbtn" onclick="go('main')">← Back to gallery</button>
+  <!-- 기존 p-detail 전체 삭제 후, body 안에 아래 모달 두 개 추가 -->
 
-      <div class="detail-adm-bar">
-        <span class="adm-bar-left">✏ Admin mode — fields are editable</span>
-        <button class="btn-save clean" id="btn-save" onclick="saveDetail()">Save changes</button>
+  <!-- ① 일반 유저용 읽기전용 상세 모달 -->
+  <div class="modal-backdrop" id="view-modal">
+    <div class="modal-card view-card">
+      <div class="modal-hdr">
+        <div class="modal-title" id="vm-title"></div>
+        <button class="modal-close" onclick="closeViewModal()">×</button>
       </div>
-
-      <div class="d-field" style="margin-bottom:1.2rem;">
-        <input class="dtitle-input" id="d-title-input" readonly oninput="markDirty()">
-      </div>
-
-      <div class="dvideo-wrap">
-        <div class="dvideo" id="d-thumb">
-          <div class="dvideo-tint" id="d-tint"></div>
-          <div class="dvideo-play" onclick="alert('Play video')">▶</div>
+      <div class="modal-body">
+        <!-- video placeholder -->
+        <div class="dvideo no-video" id="vm-video">
+          <div class="dvideo-tint" id="vm-tint"></div>
+          <div class="dvideo-play">▶</div>
           <div class="dvideo-caption">Click to play</div>
         </div>
-        <button class="video-edit-btn" onclick="alert('Replace video: open file picker or paste URL')">
-          🎬 Replace video
-        </button>
-      </div>
-
-      <div class="dmeta" id="d-meta"></div>
-
-      <div class="tags-section">
-        <div class="tags-row" id="d-tags-row"></div>
-        <div class="tag-add-row">
-          <input class="tag-input" id="tag-input" placeholder="Add tag…" onkeydown="onTagKeydown(event)">
-          <span class="tag-hint">Press Enter to add</span>
+        <!-- meta -->
+        <div class="dmeta" id="vm-meta"></div>
+        <!-- tags -->
+        <div class="tags-row" id="vm-tags"></div>
+        <!-- description -->
+        <div class="vm-desc" id="vm-desc"></div>
+        <!-- votes -->
+        <div class="votes-section">
+          <button class="bh-btn" id="vm-heart" onclick="toggleVMHeart()">🤍</button>
+          <div class="bh-cnt" id="vm-cnt">0</div>
+          <div class="bh-lbl">votes</div>
         </div>
-      </div>
-
-      <div class="d-field" style="margin-bottom:2rem;">
-        <textarea class="ddesc-input" id="d-desc-input"
-          style="width:100%;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;resize:none;"
-          readonly oninput="markDirty()"></textarea>
-      </div>
-
-      <div class="votes-section">
-        <button class="bh-btn" id="bh-btn" onclick="toggleDHeart()">🤍</button>
-        <div class="bh-cnt" id="bh-cnt">0</div>
-        <div class="bh-lbl">votes</div>
-        <div class="votes-lock">🔒 Not editable</div>
-      </div>
-
-      <div class="cmts-section">
-        <div class="cmts-title">Comments</div>
-        <div class="cmt-compose">
-          <div class="nick-row">
-            <span class="nick-label">Name</span>
-            <input class="nick-input" id="nick-input" placeholder="Your name…">
-            <button class="btn-dice" onclick="rollNickname()" title="Generate a random name">🎲</button>
-          </div>
-          <textarea class="cmt-textarea" id="cmt-textarea" placeholder="Share your thoughts on this project…"></textarea>
-          <div class="cmt-submit-row">
-            <button class="btn-cmt-post" onclick="postCmt()">Post comment</button>
-          </div>
-        </div>
-        <div class="cmt-list-wrap" id="cmt-list"></div>
+        <!-- comments -->
+        <div class="cmts-section" id="vm-cmts"></div>
       </div>
     </div>
-  </div><!-- /p-detail -->
+  </div>
+  
+  <!-- ② Admin용 편집 모달 -->
+  <div class="modal-backdrop" id="edit-modal">
+    <div class="modal-card edit-card">
+      <div class="modal-hdr">
+        <div class="modal-title" id="em-mode-label">New project</div>
+        <button class="modal-close" onclick="closeEditModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- 제목 -->
+        <div class="field full">
+          <label>Project title</label>
+          <input id="em-title" placeholder="e.g. MindBridge">
+        </div>
+        <!-- 동영상 placeholder -->
+        <div class="field full">
+          <label>Video</label>
+          <div class="dvideo no-video" id="em-video">
+            <div class="dvideo-tint" id="em-tint"></div>
+            <div class="dvideo-play">AIR</div>
+            <div class="dvideo-caption">Video can be added later</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="em-video-url" placeholder="Paste video URL…" style="flex:1">
+            <button class="btn-pick" onclick="applyVideoUrl()">Apply</button>
+          </div>
+        </div>
+        <!-- Semester -->
+        <div class="field full">
+          <label>Semester</label>
+          <div class="sem-pills" id="em-sem-pills"></div>
+          <!-- nsc 블록 동일하게 -->
+        </div>
+        <!-- Team / Members / Supervisor -->
+        <div class="field"><label>Team name</label><input id="em-team"></div>
+        <div class="field full">
+          <label>Team members</label>
+          <div class="pick-row">
+            <input id="em-members" readonly>
+            <button class="btn-pick" onclick="openStudentPicker('em')">Select</button>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Supervisor</label>
+          <div class="pick-row">
+            <input id="em-sup" readonly>
+            <button class="btn-pick" onclick="openFacultyPicker('em')">Select</button>
+          </div>
+        </div>
+        <!-- Description -->
+        <div class="field full">
+          <label>Description</label>
+          <textarea id="em-desc"></textarea>
+        </div>
+        <!-- Tags -->
+        <div class="field full">
+          <label>Tags</label>
+          <div class="tags-row" id="em-tags-row"></div>
+          <div class="tag-add-row">
+            <input id="em-tag-input" placeholder="Add tag…" onkeydown="onEmTagKeydown(event)">
+            <span class="tag-hint">Enter to add</span>
+          </div>
+        </div>
+        <!-- Card color -->
+        <div class="field">
+          <label>Card color</label>
+          <div class="swatches" id="em-swatches"></div>
+        </div>
+        <!-- Comments (edit mode에서만, 기존 프로젝트일 때) -->
+        <div id="em-cmts-section" style="display:none">
+          <div class="cmts-title">Comments</div>
+          <div id="em-cmt-list"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-fc2" onclick="closeEditModal()">Cancel</button>
+        <button class="btn-fs" id="em-submit-btn" onclick="submitEditModal()">Add project</button>
+      </div>
+    </div>
+  </div>
 
   <!-- PW PAGE -->
   <div class="page" id="p-pw">
@@ -1162,19 +1210,172 @@ async function createSem() {
   } catch (err) { showToast('Error: ' + err.message); }
 }
 
-function openAddForm() {
-  const activeSem = appData.semesters.find(s => s.status === 'active');
+// mode: 'create' | 'edit'
+function openEditModal(mode, idx, proj) {
+  editorMode = mode;
+  currentProjectId = proj?.id || null;
+  detailIdx = idx;
 
-  if (activeSem) {
-    selSem = activeSem.id;
-  } else if (!selSem && semesters.length) {
-    selSem = semesters[0].id;
+  document.getElementById('em-mode-label').textContent = mode === 'create' ? 'New project' : 'Edit project';
+  document.getElementById('em-submit-btn').textContent = mode === 'create' ? 'Add project' : 'Save changes';
+
+  // 값 초기화 or 채우기
+  document.getElementById('em-title').value = proj?.title || '';
+  document.getElementById('em-team').value = proj?.team_name || '';
+  document.getElementById('em-desc').value = proj?.description || '';
+
+  // video
+  renderEmVideo(proj);
+
+  // tags
+  emTags = [...(proj?.tags || [])];
+  renderEmTags();
+
+  // semester pills
+  renderEmSemPills(proj?.semester_id);
+
+  // swatches
+  initEmSwatches(proj?.card_color);
+
+  // comments (edit mode만)
+  if (mode === 'edit') {
+    document.getElementById('em-cmts-section').style.display = 'block';
+    loadAndRenderEmComments(proj.id);
+  } else {
+    document.getElementById('em-cmts-section').style.display = 'none';
   }
 
-  document.getElementById('add-form-wrap').classList.add('open');
-  renderSemPills();
-  initSwatches();
+  document.getElementById('edit-modal').classList.add('open');
 }
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+function openAddForm() {
+  openEditModal('create', null, null);
+}
+
+function renderEmVideo(proj) {
+  const el = document.getElementById('em-video');
+  const tint = document.getElementById('em-tint');
+  const play = el.querySelector('.dvideo-play');
+  const caption = el.querySelector('.dvideo-caption');
+  const urlInput = document.getElementById('em-video-url');
+
+  if (proj?.video_url) {
+    tint.style.background = proj.card_color || '#e8f4f8';
+    el.classList.add('has-video');
+    el.classList.remove('no-video');
+    play.textContent = '▶';
+    caption.textContent = 'Click to play';
+    urlInput.value = proj.video_url;
+  } else {
+    tint.style.background = '';
+    el.classList.add('no-video');
+    el.classList.remove('has-video');
+    play.textContent = 'AIR';
+    caption.textContent = 'Video can be added later';
+    urlInput.value = '';
+  }
+}
+
+let emTags = [];
+
+function renderEmTags() {
+  const row = document.getElementById('em-tags-row');
+  row.innerHTML = emTags.map((t, i) =>
+    `<span class="dtag">${t}<button class="tag-del" onclick="removeEmTag(${i})">✕</button></span>`
+  ).join('');
+}
+function removeEmTag(i) { emTags.splice(i, 1); renderEmTags(); }
+function onEmTagKeydown(e) {
+  if (e.key !== 'Enter') return;
+  const inp = document.getElementById('em-tag-input');
+  const val = inp.value.trim();
+  if (val && !emTags.includes(val)) { emTags.push(val); renderEmTags(); }
+  inp.value = ''; e.preventDefault();
+}
+
+async function loadAndRenderEmComments(projectId) {
+  const list = document.getElementById('em-cmt-list');
+  list.innerHTML = '<p style="color:var(--m);font-size:.9rem;">Loading…</p>';
+  try {
+    const cmts = await loadComments(projectId);
+    if (!cmts.length) {
+      list.innerHTML = '<p style="color:var(--m);font-size:.9rem;font-style:italic;">No comments.</p>';
+      return;
+    }
+    list.innerHTML = cmts.map((c, ci) => `
+      <div class="cmt-item">
+        <div class="cmt-body" style="flex:1">
+          <div class="cmt-auth">${c.author_name || 'Anonymous'}
+            <span class="cmt-time">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span>
+          </div>
+          <div class="cmt-txt">${c.content}</div>
+        </div>
+        <button class="cmt-del" style="display:block" onclick="deleteEmComment('${c.id}', this)">Delete</button>
+      </div>`).join('');
+  } catch (e) {
+    list.innerHTML = '<p style="color:var(--a);font-size:.9rem;">Failed to load comments.</p>';
+  }
+}
+
+async function submitEditModal() {
+  const title = document.getElementById('em-title').value.trim();
+  if (!title) { showToast('Project title is required.'); return; }
+
+  const data = {
+    title,
+    team_name: document.getElementById('em-team').value.trim(),
+    description: document.getElementById('em-desc').value.trim(),
+    tags: emTags,
+    video_url: document.getElementById('em-video-url').value.trim() || null,
+    card_color: document.querySelector('#em-swatches .sw.sel')?.style.background || SW_COLORS[0],
+    supervisor_emails: selectedFaculty.map(f => f.email).filter(Boolean),
+    supervisor_names: selectedFaculty.map(formatFacultyName).filter(Boolean),
+    member_ids: selectedStudents.length
+      ? selectedStudents.map(s => String(s.id))
+      : document.getElementById('em-members').value.split(',').map(m => m.trim()).filter(Boolean),
+  };
+
+  try {
+    if (editorMode === 'create') {
+      const semId = selSem || semesters[0]?.id;
+      if (!semId) { showToast('Please select a semester.'); return; }
+      await adminSaveProject({ semester_id: semId, ...data });
+      showToast('Project added!');
+    } else {
+      await adminUpdateProject(currentProjectId, data);
+      showToast('Changes saved.');
+    }
+    closeEditModal();
+    await loadAll();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function deleteEmComment(cmtId, btn) {
+  if (!confirm('Delete this comment?')) return;
+  try {
+    await deleteCommentDB(cmtId);
+    btn.closest('.cmt-item').remove();
+    showToast('Comment deleted.');
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+  
+function applyVideoUrl() {
+  const url = document.getElementById('em-video-url').value.trim();
+  const el = document.getElementById('em-video');
+  const play = el.querySelector('.dvideo-play');
+  const caption = el.querySelector('.dvideo-caption');
+  if (url) {
+    el.classList.add('has-video'); el.classList.remove('no-video');
+    play.textContent = '▶'; caption.textContent = 'Click to play';
+  } else {
+    el.classList.add('no-video'); el.classList.remove('has-video');
+    play.textContent = 'AIR'; caption.textContent = 'Video can be added later';
+  }
+}
+  
 function closeAddForm() { document.getElementById('add-form-wrap').classList.remove('open'); }
 let pickerMode = null;
 
@@ -1653,40 +1854,86 @@ function renderDetailVideo(proj) {
   }
 }
 
-async function showDetail(idx, proj) {
+function showDetail(idx, proj) {
+  if (isAdm) {
+    openEditModal('edit', idx, proj);
+  } else {
+    openViewModal(idx, proj);
+  }
+}
+
+async function openViewModal(idx, proj) {
   detailIdx = idx;
   detailProjId = proj.id;
-  detailDirty = false;
-  document.getElementById('d-title-input').value = proj.title;
-  renderDetailVideo(proj);
-  document.getElementById('d-desc-input').value = proj.description || '';
+
+  document.getElementById('vm-title').textContent = proj.title;
+
+  // video
+  const vid = document.getElementById('vm-video');
+  const tint = document.getElementById('vm-tint');
+  tint.style.background = proj.card_color || '#e8f4f8';
+  if (proj.video_url) {
+    vid.classList.add('has-video'); vid.classList.remove('no-video');
+    vid.querySelector('.dvideo-play').textContent = '▶';
+    vid.querySelector('.dvideo-caption').textContent = 'Click to play';
+  } else {
+    vid.classList.add('no-video'); vid.classList.remove('has-video');
+    vid.querySelector('.dvideo-play').textContent = 'AIR';
+    vid.querySelector('.dvideo-caption').textContent = 'Video can be added later';
+  }
 
   // meta
-  const meta = document.getElementById('d-meta'); meta.innerHTML = '';
-  const metaFields = [
-    { l: 'Team', v: proj.team_name || '', k: 'team_name' },
-    { l: 'Members', v: (proj.member_ids || []).join(', '), k: 'members' },
-    { l: 'Supervisor', v: proj.supervisor_email || '', k: 'supervisor_email' },
-    { l: 'Semester', v: appData.semesters.find(s => s.id === proj.semester_id)?.name || proj.semester_id, k: 'semester' },
-  ];
-  metaFields.forEach(({ l, v, k }) => {
+  const meta = document.getElementById('vm-meta'); meta.innerHTML = '';
+  [
+    { l: 'Team', v: proj.team_name || '' },
+    { l: 'Members', v: (proj.member_ids || []).join(', ') },
+    { l: 'Supervisor', v: proj.supervisor_names?.join(', ') || proj.supervisor_email || '' },
+    { l: 'Semester', v: appData.semesters.find(s => s.id === proj.semester_id)?.name || proj.semester_id },
+  ].forEach(({ l, v }) => {
+    if (!v) return;
     const mi = document.createElement('div'); mi.className = 'mitem';
-    mi.innerHTML = `<div class="mlbl">${l}</div><input class="mval-input meta-editable" data-key="${k}" value="${v}" readonly oninput="markDirty()">`;
+    mi.innerHTML = `<div class="mlbl">${l}</div><div class="mval">${v}</div>`;
     meta.appendChild(mi);
   });
 
-  renderDetailTags(proj.tags || []);
-  updateDHeart();
-  if (!document.getElementById('nick-input').value) rollNickname();
+  // tags
+  const tagsRow = document.getElementById('vm-tags');
+  tagsRow.innerHTML = (proj.tags || []).map(t => `<span class="dtag">${t}</span>`).join('');
 
-  // load comments
+  // description
+  document.getElementById('vm-desc').textContent = proj.description || '';
+
+  // votes
+  const liked = appData.myVotes.includes(proj.id);
+  document.getElementById('vm-heart').textContent = liked ? '❤️' : '🤍';
+  document.getElementById('vm-cnt').textContent = appData.votes[proj.id] || 0;
+
+  // comments
+  const cmtWrap = document.getElementById('vm-cmts');
+  cmtWrap.innerHTML = '<p style="color:var(--m);font-size:.9rem;">Loading comments…</p>';
   try {
-    detailComments = await loadComments(proj.id);
-  } catch (e) { detailComments = []; }
-  renderDCmts();
+    const cmts = await loadComments(proj.id);
+    if (!cmts.length) {
+      cmtWrap.innerHTML = '<p style="font-size:.9rem;color:var(--m);font-style:italic;">No comments yet.</p>';
+    } else {
+      cmtWrap.innerHTML = cmts.map(c => `
+        <div class="cmt-item">
+          <div class="cmt-avatar" style="background:${avatarColor(c.author_name||'A')}">${avatarInitials(c.author_name||'A')}</div>
+          <div class="cmt-body">
+            <div class="cmt-auth">${c.author_name||'Anonymous'}<span class="cmt-time">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span></div>
+            <div class="cmt-txt">${c.content}</div>
+          </div>
+        </div>`).join('');
+    }
+  } catch (e) {
+    cmtWrap.innerHTML = '<p style="color:var(--a);font-size:.9rem;">Failed to load comments.</p>';
+  }
 
-  applyDetailAdmMode();
-  go('detail');
+  document.getElementById('view-modal').classList.add('open');
+}
+
+function closeViewModal() {
+  document.getElementById('view-modal').classList.remove('open');
 }
 
 function renderDetailTags(tags) {
