@@ -1273,9 +1273,13 @@ function generateNickname() {
 function rollNickname() {
   const locked = localStorage.getItem('airshow_name_locked');
   if (locked) return;
-  const name = NICKNAMES[Math.floor(Math.random() * NICKNAMES.length)];
   const inp = document.getElementById('nick-input');
-  if (inp) inp.value = name;
+  if (!inp) return;
+  const name = generateNickname();
+  inp.value = name;
+  inp.classList.remove('nick-bounce');
+  void inp.offsetWidth;
+  inp.classList.add('nick-bounce');
   localStorage.setItem('airshow_nickname', name);
 }
 
