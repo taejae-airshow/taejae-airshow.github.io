@@ -5,13 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AIRshow — Showroom for Taejae AIR Projects</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  
 <script>
 // ── SUPABASE CONFIG ──
 // Same Supabase project as Telos
 const SUPABASE_URL  = 'https://ecktuualyuvctixlkjve.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVja3R1dWFseXV2Y3RpeGxranZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTczOTgsImV4cCI6MjA5MDc3MzM5OH0.EauKNa2US2VQ4dTdCzx0DBZXlw4OR-CQnlMRuulYfB8';
-
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
 // AIRshow table names
 const TBL_SEMESTERS = 'air_semesters';
 const TBL_PROJECTS  = 'air_projects';
@@ -796,7 +800,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
     <div class="pwwrap">
       <div class="pwtitle">Admin access</div>
       <div class="pwsub">Enter the admin password to manage AIRshow.</div>
-      <input class="pwinput" type="password" placeholder="Password" id="pw-in"
+      <input class="pwinput" type="email" placeholder="Admin email" id="admin-email">
+      <input class="pwinput" type="password" placeholder="Password" id="admin-password"
         onkeydown="if(event.key==='Enter')checkPw()">
       <div class="pwerr" id="pw-err">Incorrect password.</div>
       <button class="btn-pwok" onclick="checkPw()">Confirm</button>
@@ -807,9 +812,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 </div><!-- /app -->
 
 <script>
-// ── ADMIN PASSWORD ──
-// Change this to your actual admin password
-const ADMIN_PASSWORD = 'airshow2026';
+
 
 // ── NICKNAME GENERATOR ──
 const ADJS = ['Curious','Brilliant','Wandering','Sleepy','Brave','Fuzzy','Quiet',
@@ -1401,25 +1404,52 @@ async function delCmt(ci, cmtId) {
 // ── ADMIN ──
 function onAdmBtn() {
   if (isAdm) exitAdm();
-  else { go('pw'); document.getElementById('pw-in').value = ''; document.getElementById('pw-err').style.display = 'none'; }
-}
-function checkPw() {
-  if (document.getElementById('pw-in').value === ADMIN_PASSWORD) {
-    isAdm = true;
-    document.getElementById('adm-bar').classList.remove('hide');
-    document.getElementById('adm-btn').textContent = 'Exit admin';
-    renderGallery(); renderLB();
-    if (detailIdx !== null) applyDetailAdmMode();
-    go('main');
-  } else {
-    document.getElementById('pw-err').style.display = 'block';
+  else {
+    go('pw');
+    document.getElementById('admin-email').value = '';
+    document.getElementById('admin-password').value = '';
+    document.getElementById('pw-err').style.display = 'none';
   }
 }
-function exitAdm() {
-  isAdm = false; editingLB = {};
+async function checkPw() {
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.session || email !== 'kjy@taejae.ac.kr') {
+    document.getElementById('pw-err').style.display = 'block';
+    return;
+  }
+
+  isAdm = true;
+
+  document.getElementById('adm-bar').classList.remove('hide');
+  document.getElementById('adm-btn').textContent = 'Exit admin';
+
+  renderGallery();
+  renderLB();
+
+  if (detailIdx !== null) applyDetailAdmMode();
+
+  go('main');
+}
+async function exitAdm() {
+  await supabaseClient.auth.signOut();
+
+  isAdm = false;
+  editingLB = {};
+
   document.getElementById('adm-bar').classList.add('hide');
   document.getElementById('adm-btn').textContent = '⚙ Admin';
-  closeAddForm(); renderGallery(); renderLB();
+
+  closeAddForm();
+  renderGallery();
+  renderLB();
+
   if (detailIdx !== null) applyDetailAdmMode();
 }
 
