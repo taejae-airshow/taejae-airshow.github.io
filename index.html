@@ -39,44 +39,50 @@ function playVideo(url) {
   if (!url) return;
   const ytId = getYouTubeId(url);
   const gdId = getGoogleDriveId(url);
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position:fixed;inset:0;background:rgba(0,0,0,.88);
-    z-index:9999;display:flex;align-items:center;justify-content:center;
-  `;
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  const odUrl = getOneDriveEmbedUrl(url);
 
+  // 현재 페이지에서 열려있는 video wrap 찾기
+  const activeWrap = document.querySelector('.page.active .dvideo-wrap');
+  if (!activeWrap) return;
+
+  let embedHtml = '';
   if (ytId) {
-    overlay.innerHTML = `
-      <div style="position:relative;width:min(860px,96vw);aspect-ratio:16/9;">
-        <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1"
-          style="width:100%;height:100%;border:none;border-radius:12px;"
-          allow="autoplay; fullscreen"></iframe>
-        <button onclick="this.closest('div').parentElement.remove()"
-          style="position:absolute;top:-36px;right:0;background:none;border:none;
-          color:#fff;font-size:1.6rem;cursor:pointer;line-height:1;">✕</button>
-      </div>`;
+    embedHtml = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1"
+      style="width:100%;height:100%;border:none;"
+      allow="autoplay; fullscreen"></iframe>`;
   } else if (gdId) {
-    overlay.innerHTML = `
-      <div style="position:relative;width:min(860px,96vw);aspect-ratio:16/9;">
-        <iframe src="https://drive.google.com/file/d/${gdId}/preview"
-          style="width:100%;height:100%;border:none;border-radius:12px;"
-          allow="autoplay; fullscreen"></iframe>
-        <button onclick="this.closest('div').parentElement.remove()"
-          style="position:absolute;top:-36px;right:0;background:none;border:none;
-          color:#fff;font-size:1.6rem;cursor:pointer;line-height:1;">✕</button>
-      </div>`;
+    embedHtml = `<iframe src="https://drive.google.com/file/d/${gdId}/preview"
+      style="width:100%;height:100%;border:none;"
+      allow="autoplay; fullscreen"></iframe>`;
+  } else if (odUrl) {
+    embedHtml = `<iframe src="${odUrl}"
+      style="width:100%;height:100%;border:none;"
+      allow="autoplay; fullscreen"></iframe>`;
   } else {
-    overlay.innerHTML = `
-      <div style="position:relative;width:min(860px,96vw);">
-        <video src="${url}" controls autoplay
-          style="width:100%;border-radius:12px;display:block;"></video>
-        <button onclick="this.closest('div').parentElement.remove()"
-          style="position:absolute;top:-36px;right:0;background:none;border:none;
-          color:#fff;font-size:1.6rem;cursor:pointer;line-height:1;">✕</button>
-      </div>`;
+    embedHtml = `<video src="${url}" controls autoplay
+      style="width:100%;height:100%;display:block;"></video>`;
   }
-  document.body.appendChild(overlay);
+
+  // placeholder를 player로 교체
+  const player = document.createElement('div');
+  player.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;';
+  player.innerHTML = `
+    ${embedHtml}
+    <button onclick="closeInlineVideo(this)"
+      style="position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;
+      background:rgba(0,0,0,.6);border:none;color:#fff;font-size:1rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>`;
+
+  activeWrap._originalContent = activeWrap.innerHTML;
+  activeWrap.innerHTML = '';
+  activeWrap.appendChild(player);
+}
+
+function closeInlineVideo(btn) {
+  const wrap = btn.closest('.dvideo-wrap');
+  if (wrap && wrap._originalContent) {
+    wrap.innerHTML = wrap._originalContent;
+  }
 }
   
 // ── VOTER TOKEN (anonymous voting, 30-day cookie) ──
