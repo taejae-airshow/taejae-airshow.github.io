@@ -90,6 +90,40 @@ async function sbUpdate(table, col, val, row) {
   }
 }
 
+function renderEmSemPills(currentSemId) {
+  const c = document.getElementById('em-sem-pills');
+  if (!c) return;
+  c.innerHTML = '';
+  const activeSem = appData.semesters.find(s => s.status === 'active');
+  if (activeSem) selSem = currentSemId || activeSem.id;
+  else if (!selSem && semesters.length) selSem = currentSemId || semesters[0].id;
+
+  semesters.forEach(s => {
+    const p = document.createElement('button');
+    p.className = 'sp' + (s.id === selSem ? ' sel' : '');
+    p.textContent = s.name;
+    p.onclick = () => { selSem = s.id; renderEmSemPills(s.id); };
+    c.appendChild(p);
+  });
+}
+
+function initEmSwatches(currentColor) {
+  const c = document.getElementById('em-swatches');
+  if (!c) return;
+  c.innerHTML = '';
+  SW_COLORS.forEach((s, i) => {
+    const el = document.createElement('div');
+    const isSelected = currentColor ? s === currentColor : i === 0;
+    el.className = 'sw' + (isSelected ? ' sel' : '');
+    el.style.background = s;
+    el.onclick = () => {
+      document.querySelectorAll('#em-swatches .sw').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+    };
+    c.appendChild(el);
+  });
+}
+  
 async function sbDelete(table, col, val) {
   const r = await fetch(
     `${SUPABASE_URL}/rest/v1/${table}?${col}=eq.${encodeURIComponent(val)}`,
