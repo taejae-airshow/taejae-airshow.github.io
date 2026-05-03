@@ -66,6 +66,17 @@ async function sbGet(table, params = '') {
   return r.json();
 }
 
+async function toggleVMHeart() {
+  if (detailProjId === null) return;
+  const btn = document.getElementById('vm-heart');
+  btn.style.transform = 'scale(1.3)';
+  setTimeout(() => btn.style.transform = '', 200);
+  await toggleVote(detailProjId);
+  const liked = appData.myVotes.includes(detailProjId);
+  document.getElementById('vm-heart').textContent = liked ? '❤️' : '🤍';
+  document.getElementById('vm-cnt').textContent = appData.votes[detailProjId] || 0;
+}
+  
 async function sbInsert(table, row) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
@@ -199,7 +210,10 @@ async function toggleVote(projectId) {
       appData.votes[projectId] = (appData.votes[projectId] || 0) + 1;
     }
     renderGallery();
-    //if (detailIdx !== null) updateDHeart();
+    if (detailProjId !== null && document.getElementById('vm-heart')) {
+      document.getElementById('vm-heart').textContent = appData.myVotes.includes(detailProjId) ? '❤️' : '🤍';
+      document.getElementById('vm-cnt').textContent = appData.votes[detailProjId] || 0;
+    }
   } catch (err) {
     console.error('Vote error:', err);
     showToast('Vote error: ' + err.message);
