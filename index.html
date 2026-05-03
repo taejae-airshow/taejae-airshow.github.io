@@ -1416,6 +1416,11 @@ function renderEmVideo(proj) {
     caption.textContent = 'Video can be added later';
     urlInput.value = '';
   }
+
+  // ← 추가: hover 없이도 즉시 보이게
+  play.style.opacity = '1';
+  play.style.transform = 'scale(1)';
+  caption.style.opacity = '1';
 }
 
 let emTags = [];
