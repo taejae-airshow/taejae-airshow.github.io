@@ -235,9 +235,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 /* ── NAV ── */
 .nav{position:sticky;top:0;z-index:300;background:rgba(248,247,244,.97);border-bottom:1px solid var(--b);backdrop-filter:blur(10px);}
 .nav-inner{max-width:var(--max);margin:0 auto;padding:0 var(--pad);height:60px;display:flex;align-items:center;justify-content:space-between;}
-.nav-brand{display:flex;flex-direction:column;gap:1px;cursor:pointer;}
-.nav-logo{font-family:'DM Serif Display',serif;font-size:1.25rem;line-height:1.1;letter-spacing:-.02em;}
-.nav-sub{font-size:.7rem;color:var(--m);letter-spacing:.03em;}
+.nav-brand{
+  cursor:pointer;
+}
+
+.luxury-brand{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  white-space:nowrap;
+}
+
+.brand-main{
+  font-family:'DM Sans',sans-serif;
+  font-size:1.45rem;
+  font-weight:500;
+  letter-spacing:-.015em;
+  color:var(--txt);
+}
+
+.brand-sub{
+  font-family:'DM Sans',sans-serif;
+  font-size:.88rem;
+  font-weight:400;
+  color:rgba(26,26,46,.55);
+  letter-spacing:-.005em;
+}
 .nav-links{display:flex;gap:1.5rem;align-items:center;}
 .nl{font-size:.875rem;color:var(--m);cursor:pointer;transition:color .15s;background:none;border:none;font-family:'DM Sans',sans-serif;}
 .nl:hover{color:var(--txt);}
@@ -713,11 +736,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   .cv-slot,.edit-slot{grid-template-columns:1fr;}
   .arc-list-row{grid-template-columns:34px 1fr;}
   .arc-list-tags{display:none;}
+  .brand-main{
+    font-size:1.3rem;
+  }
+  
+  .brand-sub{
+    font-size:.8rem;
+  }
 }
 @media(max-width:480px){
   .ggrid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
   .arc-ggrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
   .nav-links .nl{font-size:.78rem;}
+  .brand-main{
+    font-size:1.25rem;
+  }
+  
+  .brand-sub{
+    font-size:.78rem;
+  }
 }
 </style>
 </head>
@@ -728,9 +765,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   <!-- NAV -->
   <nav class="nav">
     <div class="nav-inner">
-      <div class="nav-brand" onclick="scrollToTop()">
-        <div class="nav-logo">AIRshow</div>
-        <div class="nav-sub">Showroom for Taejae AIR Projects</div>
+      <div class="nav-brand luxury-brand" onclick="scrollToTop()">
+        <span class="brand-main">AIRshow</span>
+        <span class="brand-sub">· Taejae AIR Projects</span>
       </div>
       <div class="nav-links">
         <button class="nl" onclick="scrollToSec('sec-gallery')">Gallery</button>
