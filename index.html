@@ -1269,12 +1269,14 @@ function generateNickname() {
   const n = NOUNS[Math.floor(Math.random() * NOUNS.length)];
   return `${a} ${n}`;
 }
+  
 function rollNickname() {
+  const locked = localStorage.getItem('airshow_name_locked');
+  if (locked) return;
+  const name = NICKNAMES[Math.floor(Math.random() * NICKNAMES.length)];
   const inp = document.getElementById('nick-input');
-  inp.value = generateNickname();
-  inp.classList.remove('nick-bounce');
-  void inp.offsetWidth;
-  inp.classList.add('nick-bounce');
+  if (inp) inp.value = name;
+  localStorage.setItem('airshow_nickname', name);
 }
 
 // ── AVATAR ──
@@ -2169,23 +2171,13 @@ async function openViewPage(idx, proj) {
   document.getElementById('vm-cnt').textContent = appData.votes[proj.id] || 0;
 
   // comments
-  if (!document.getElementById('nick-input').value) rollNickname();
+  initNickname();
+
   const cmtWrap = document.getElementById('vm-cmts');
   cmtWrap.innerHTML = '<p style="color:var(--m);font-size:.9rem;">Loading comments…</p>';
   try {
     const cmts = await loadComments(proj.id);
-    if (!cmts.length) {
-      cmtWrap.innerHTML = '<p style="font-size:.9rem;color:var(--m);font-style:italic;">No comments yet. Be the first!</p>';
-    } else {
-      cmtWrap.innerHTML = cmts.map(c => `
-        <div class="cmt-item">
-          <div class="cmt-avatar" style="background:${avatarColor(c.author_name||'A')}">${avatarInitials(c.author_name||'A')}</div>
-          <div class="cmt-body">
-            <div class="cmt-auth">${c.author_name||'Anonymous'}<span class="cmt-time">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span></div>
-            <div class="cmt-txt">${c.content}</div>
-          </div>
-        </div>`).join('');
-    }
+    renderViewCmts(cmts);
   } catch (e) {
     cmtWrap.innerHTML = '<p style="color:var(--a);font-size:.9rem;">Failed to load comments.</p>';
   }
@@ -2253,6 +2245,87 @@ function updateDHeart() {
   document.getElementById('bh-btn').textContent = liked ? '❤️' : '🤍';
   document.getElementById('bh-cnt').textContent = count;
 }
+
+function initNickname() {
+  const saved = localStorage.getItem('airshow_nickname');
+  const locked = localStorage.getItem('airshow_name_locked');
+  const inp = document.getElementById('nick-input');
+  const dice = document.getElementById('nick-dice');
+  if (saved && inp) inp.value = saved;
+  else rollNickname();
+  if (locked && dice) {
+    dice.disabled = true;
+    dice.style.opacity = '.35';
+    dice.style.cursor = 'default';
+  }
+}
+
+function renderViewCmts(cmts) {
+  const mine = JSON.parse(localStorage.getItem('airshow_my_cmts') || '[]');
+  const cmtWrap = document.getElementById('vm-cmts');
+  if (!cmts.length) {
+    cmtWrap.innerHTML = '<p style="font-size:.9rem;color:var(--m);font-style:italic;">No comments yet. Be the first!</p>';
+    return;
+  }
+  cmtWrap.innerHTML = cmts.map(c => {
+    const isMine = mine.includes(c.id);
+    return `
+      <div class="cmt-item" id="cmt-${c.id}">
+        <div class="cmt-avatar" style="background:${avatarColor(c.author_name||'A')}">${avatarInitials(c.author_name||'A')}</div>
+        <div class="cmt-body" style="flex:1;">
+          <div class="cmt-auth">${c.author_name||'Anonymous'}
+            <span class="cmt-time">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span>
+            ${isMine ? `
+              <span style="margin-left:auto;display:inline-flex;gap:6px;">
+                <button onclick="editViewCmt('${c.id}')" style="font-size:.75rem;color:var(--m);background:none;border:none;cursor:pointer;padding:0;">Edit</button>
+                <button onclick="deleteViewCmt('${c.id}')" style="font-size:.75rem;color:var(--a);background:none;border:none;cursor:pointer;padding:0;">Delete</button>
+              </span>` : ''}
+          </div>
+          <div class="cmt-txt" id="cmt-txt-${c.id}">${c.content}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function editViewCmt(cmtId) {
+  const txtEl = document.getElementById(`cmt-txt-${cmtId}`);
+  const current = txtEl.textContent;
+  txtEl.innerHTML = `
+    <textarea style="width:100%;font-size:.9rem;padding:6px;border:1px solid var(--b);border-radius:6px;font-family:'DM Sans',sans-serif;resize:none;"
+      id="edit-ta-${cmtId}">${current}</textarea>
+    <div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">
+      <button onclick="cancelEditCmt('${cmtId}','${current.replace(/'/g,"\\\'")}')"
+        style="font-size:.8rem;padding:4px 12px;border:1px solid var(--b);border-radius:6px;background:none;cursor:pointer;">Cancel</button>
+      <button onclick="saveEditCmt('${cmtId}')"
+        style="font-size:.8rem;padding:4px 12px;background:var(--txt);color:#fff;border:none;border-radius:6px;cursor:pointer;">Save</button>
+    </div>`;
+}
+
+function cancelEditCmt(cmtId, original) {
+  document.getElementById(`cmt-txt-${cmtId}`).innerHTML = original;
+}
+
+async function saveEditCmt(cmtId) {
+  const newText = document.getElementById(`edit-ta-${cmtId}`).value.trim();
+  if (!newText) return;
+  try {
+    await sbPatch(TBL_COMMENTS, `id=eq.${cmtId}`, { content: newText });
+    document.getElementById(`cmt-txt-${cmtId}`).textContent = newText;
+    showToast('Comment updated.');
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function deleteViewCmt(cmtId) {
+  if (!confirm('Delete this comment?')) return;
+  try {
+    await deleteCommentDB(cmtId);
+    document.getElementById(`cmt-${cmtId}`).remove();
+    const mine = JSON.parse(localStorage.getItem('airshow_my_cmts') || '[]');
+    localStorage.setItem('airshow_my_cmts', JSON.stringify(mine.filter(id => id !== cmtId)));
+    showToast('Comment deleted.');
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+  
 function toggleDHeart() {
   if (detailIdx === null || isAdm) return;
   const p = appData.projects[detailIdx];
@@ -2291,24 +2364,25 @@ async function postCmt() {
   const text = textEl.value.trim();
   if (!text) return;
   try {
-    await postCommentDB(detailProjId, nameEl.value, text);
-    textEl.value = '';
-    rollNickname();
-    // vm-cmts에 새 댓글 추가
-    const cmts = await loadComments(detailProjId);
-    const cmtWrap = document.getElementById('vm-cmts');
-    if (!cmts.length) {
-      cmtWrap.innerHTML = '<p style="font-size:.9rem;color:var(--m);font-style:italic;">No comments yet. Be the first!</p>';
-    } else {
-      cmtWrap.innerHTML = cmts.map(c => `
-        <div class="cmt-item">
-          <div class="cmt-avatar" style="background:${avatarColor(c.author_name||'A')}">${avatarInitials(c.author_name||'A')}</div>
-          <div class="cmt-body">
-            <div class="cmt-auth">${c.author_name||'Anonymous'}<span class="cmt-time">${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span></div>
-            <div class="cmt-txt">${c.content}</div>
-          </div>
-        </div>`).join('');
+    const result = await postCommentDB(detailProjId, nameEl.value, text);
+    const newId = (Array.isArray(result) ? result[0] : result)?.id;
+
+    // 이름 고정
+    localStorage.setItem('airshow_nickname', nameEl.value);
+    localStorage.setItem('airshow_name_locked', 'true');
+    const dice = document.getElementById('nick-dice');
+    if (dice) { dice.disabled = true; dice.style.opacity = '.35'; dice.style.cursor = 'default'; }
+
+    // 내 댓글 ID 저장
+    if (newId) {
+      const mine = JSON.parse(localStorage.getItem('airshow_my_cmts') || '[]');
+      mine.push(newId);
+      localStorage.setItem('airshow_my_cmts', JSON.stringify(mine));
     }
+
+    textEl.value = '';
+    const cmts = await loadComments(detailProjId);
+    renderViewCmts(cmts);
   } catch (err) { showToast('Error posting comment: ' + err.message); }
 }
 
