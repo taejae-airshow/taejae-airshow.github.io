@@ -222,6 +222,9 @@ async function loadAll() {
     appData.awards = await sbGet(TBL_AWARDS,
       'order=semester_id.desc,display_order.asc');
 
+    const allProjects = await sbGet(TBL_PROJECTS, 'select=id');
+    document.getElementById('stat-all').textContent = allProjects.length;
+
     renderGallery();
     renderLB();
     renderArchiveCombo();
