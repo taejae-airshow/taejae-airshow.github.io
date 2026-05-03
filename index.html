@@ -802,18 +802,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
           <div class="field full"><label>Project title</label><input id="f-title" placeholder="e.g. MindBridge: AI Mental Health Companion"></div>
           <div class="field"><label>Team name</label><input id="f-team" placeholder="e.g. Team Nova"></div>
           <div class="field full">
-            <label>Supervisor</label>
-            <div class="pick-row">
-              <input id="f-sup" placeholder="Prof. Name" readonly>
-              <button class="btn-pick" onclick="openFacultyPicker()" type="button">Select</button>
-            </div>
-          </div>
-          
-          <div class="field full">
             <label>Team members</label>
             <div class="pick-row">
               <input id="f-members" placeholder="Kim Jiwon, Lee Soyeon" readonly>
               <button class="btn-pick" onclick="openStudentPicker()" type="button">Select</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>Supervisor</label>
+            <div class="pick-row">
+              <input id="f-sup" placeholder="Prof. Name" readonly>
+              <button class="btn-pick" onclick="openFacultyPicker()" type="button">Select</button>
             </div>
           </div>
           <div class="field full"><label>Description</label><textarea id="f-desc" placeholder="Describe the research question and approach…"></textarea></div>
