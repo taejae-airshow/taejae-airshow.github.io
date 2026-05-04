@@ -1889,7 +1889,8 @@ function renderGallery() {
           <div class="gl-row-tags">${(p.tags||[]).map(t=>`<span class="gl-row-tag">${t}</span>`).join('')}</div>
         </div>
         <div class="gl-row-right">
-          <span class="gl-row-votes">${liked?'❤️':'🤍'} ${voteCount}</span>
+          <button class="hbtn${liked?' liked':''}" onclick="event.stopPropagation();handleVote('${p.id}')">${liked?'❤️':'🤍'}</button>
+          <span style="font-size:.8rem;color:var(--m);">${voteCount}</span>
           ${isAdm ? `<button onclick="event.stopPropagation();delProject('${p.id}')" style="font-size:.75rem;color:var(--a);background:none;border:none;cursor:pointer;padding:0;">✕</button>` : ''}
         </div>`;
       g.appendChild(row);
