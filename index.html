@@ -226,7 +226,7 @@ function renderEmSemPills(currentSemId, expanded) {
     const p = document.createElement('button');
     p.className = 'sp' + (s.id === selSem ? ' sel' : '');
     p.innerHTML = s.status === 'draft'
-      ? `${escapeHtml(s.name)} <span style="...">draft</span>`
+      ? `${escapeHtml(s.name)} <span style="font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;background:rgba(26,26,46,.08);color:rgba(26,26,46,.45);border-radius:4px;padding:1px 5px;">draft</span>`
       : escapeHtml(s.name);
     p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
     c.appendChild(p);
