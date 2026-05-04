@@ -198,7 +198,7 @@ async function sbUpdate(table, col, val, row) {
   }
 }
 
-function renderEmSemPills(currentSemId) {
+function renderEmSemPills(currentSemId, expanded) {
   const c = document.getElementById('em-sem-pills');
   if (!c) return;
   c.innerHTML = '';
@@ -222,24 +222,42 @@ function renderEmSemPills(currentSemId) {
     return;
   }
 
-  // active + draft 학기만 pill로 표시
-  appData.semesters.filter(s => s.status === 'active' || s.status === 'draft').forEach(s => {
-    const p = document.createElement('button');
-    p.className = 'sp' + (s.id === selSem ? ' sel' : '');
-    p.innerHTML = s.status === 'draft'
-      ? `${s.name} <span style="font-size:.7rem;padding:2px 7px;background:rgba(26,26,46,.08);border-radius:20px;margin-left:4px;">draft</span>`
-      : s.name;
-    p.onclick = () => { selSem = s.id; renderEmSemPills(s.id); };
-    c.appendChild(p);
-  });
-
-  // Change semester 버튼
-  const cb = document.createElement('button');
-  cb.className = 'sp change';
-  cb.textContent = 'Change semester';
-  cb.style.cssText = 'font-size:.8rem;';
-  cb.onclick = () => openNewSemModal();
-  c.appendChild(cb);
+  if (expanded) {
+    // State 3 — 전체 학기 목록 펼침
+    appData.semesters.forEach(s => {
+      const p = document.createElement('button');
+      p.className = 'sp' + (s.id === selSem ? ' sel' : '');
+      p.innerHTML = s.status === 'draft'
+        ? `${s.name} <span style="font-size:.7rem;padding:2px 7px;background:rgba(26,26,46,.08);border-radius:20px;margin-left:4px;">draft</span>`
+        : s.name;
+      p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
+      c.appendChild(p);
+    });
+    // ＋ New semester 버튼
+    const np = document.createElement('button');
+    np.className = 'sp new';
+    np.textContent = '＋ New semester';
+    np.onclick = () => openNewSemModal();
+    c.appendChild(np);
+  } else {
+    // State 2 — active/draft만 표시
+    appData.semesters.filter(s => s.status === 'active' || s.status === 'draft').forEach(s => {
+      const p = document.createElement('button');
+      p.className = 'sp' + (s.id === selSem ? ' sel' : '');
+      p.innerHTML = s.status === 'draft'
+        ? `${s.name} <span style="font-size:.7rem;padding:2px 7px;background:rgba(26,26,46,.08);border-radius:20px;margin-left:4px;">draft</span>`
+        : s.name;
+      p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
+      c.appendChild(p);
+    });
+    // Change semester 버튼
+    const cb = document.createElement('button');
+    cb.className = 'sp change';
+    cb.textContent = 'Change semester';
+    cb.style.cssText = 'font-size:.8rem;';
+    cb.onclick = () => renderEmSemPills(selSem, true);
+    c.appendChild(cb);
+  }
 }
 
 function openNewSemModal() {
@@ -1515,7 +1533,7 @@ async function createSem() {
     semesters = appData.semesters;
     selSem = id;
     closeNewSemModal();
-    renderEmSemPills(id);
+    renderEmSemPills(id, false);
     showToast(`Semester "${name}" created${status === 'draft' ? ' (draft)' : ''}.`);
   } catch (err) { showToast('Error: ' + err.message); }
 }
@@ -1572,8 +1590,8 @@ async function openEditModal(mode, idx, proj) {
   renderEmTags();
 
   // semester pills
-  renderEmSemPills(proj?.semester_id);
-
+  renderEmSemPills(proj?.semester_id, false);
+  
   // swatches
   initEmSwatches(proj?.card_color);
 
