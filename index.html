@@ -202,19 +202,60 @@ function renderEmSemPills(currentSemId) {
   const c = document.getElementById('em-sem-pills');
   if (!c) return;
   c.innerHTML = '';
-  const activeSem = appData.semesters.find(s => s.status === 'active');
-  if (activeSem) selSem = currentSemId || activeSem.id;
-  else if (!selSem && semesters.length) selSem = currentSemId || semesters[0].id;
 
-  semesters.forEach(s => {
+  const activeSem = appData.semesters.find(s => s.status === 'active');
+  const draftSems = appData.semesters.filter(s => s.status === 'draft');
+
+  // selSem 결정
+  if (currentSemId) selSem = currentSemId;
+  else if (activeSem) selSem = activeSem.id;
+  else if (draftSems.length) selSem = draftSems[0].id;
+  else if (semesters.length) selSem = semesters[0].id;
+
+  if (!activeSem && !draftSems.length) {
+    // State 1 — active 학기 없음
+    const np = document.createElement('button');
+    np.className = 'sp new';
+    np.textContent = '＋ New semester';
+    np.onclick = () => openNewSemModal();
+    c.appendChild(np);
+    return;
+  }
+
+  // active + draft 학기만 pill로 표시
+  appData.semesters.filter(s => s.status === 'active' || s.status === 'draft').forEach(s => {
     const p = document.createElement('button');
     p.className = 'sp' + (s.id === selSem ? ' sel' : '');
-    p.textContent = s.name;
+    p.innerHTML = s.status === 'draft'
+      ? `${s.name} <span style="font-size:.7rem;padding:2px 7px;background:rgba(26,26,46,.08);border-radius:20px;margin-left:4px;">draft</span>`
+      : s.name;
     p.onclick = () => { selSem = s.id; renderEmSemPills(s.id); };
     c.appendChild(p);
   });
+
+  // Change semester 버튼
+  const cb = document.createElement('button');
+  cb.className = 'sp change';
+  cb.textContent = 'Change semester';
+  cb.style.cssText = 'font-size:.8rem;';
+  cb.onclick = () => openNewSemModal();
+  c.appendChild(cb);
 }
 
+function openNewSemModal() {
+  const activeSem = appData.semesters.find(s => s.status === 'active');
+  const note = document.getElementById('nsc-note');
+  note.textContent = activeSem
+    ? `새 학기는 draft 상태로 생성됩니다. 기존 ${activeSem.name}은 그대로 유지됩니다.`
+    : '새 학기가 active 상태로 생성됩니다.';
+  updateNsc();
+  document.getElementById('new-sem-modal').classList.add('open');
+}
+
+function closeNewSemModal() {
+  document.getElementById('new-sem-modal').classList.remove('open');
+}
+  
 function initEmSwatches(currentColor) {
   const c = document.getElementById('em-swatches');
   if (!c) return;
@@ -976,6 +1017,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
     </div>
   </div>
 
+  <!-- NEW SEMESTER POPUP -->
+  <div class="modal-backdrop" id="new-sem-modal">
+    <div class="modal-card" style="max-width:360px;">
+      <div class="modal-hdr">
+        <div class="modal-title">New semester</div>
+        <button class="modal-close" onclick="closeNewSemModal()">×</button>
+      </div>
+      <div class="modal-body" style="padding:1.2rem 1.4rem;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <select class="nsc-sel" id="nsc-term">
+            <option>Spring</option><option>Summer</option>
+            <option selected>Fall</option><option>Winter</option>
+          </select>
+          <input class="nsc-yr" id="nsc-yr" type="number" min="2020" max="2040" placeholder="2026">
+          <span class="nsc-preview" id="nsc-preview">—</span>
+        </div>
+        <div class="nsc-dup" id="nsc-dup">A semester with this name already exists.</div>
+        <div style="font-size:.78rem;color:var(--m);font-style:italic;margin-bottom:1rem;" id="nsc-note"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button class="btn-fc2" onclick="closeNewSemModal()">Cancel</button>
+          <button class="btn-fs" id="btn-nsc" onclick="createSem()" disabled>Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MAIN PAGE -->
   <div class="page active" id="p-main">
 
@@ -1194,7 +1261,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       <!-- Semester -->
       <div class="sem-box" style="margin-bottom:1.2rem;">
         <div class="sem-box-lbl">Semester</div>
-        <div class="sem-pills" id="em-sem-pills"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" id="em-sem-pills"></div>
       </div>
   
       <!-- Title -->
@@ -1418,29 +1485,37 @@ function renderSemPills() {
   np.onclick = () => { showNsc = !showNsc; document.getElementById('nsc').classList.toggle('open', showNsc); if (showNsc) updateNsc(); };
   c.appendChild(np);
 }
+  
 function updateNsc() {
-  const term = document.getElementById('nsc-term').value, yr = document.getElementById('nsc-yr').value;
+  const term = document.getElementById('nsc-term').value;
+  const yr = document.getElementById('nsc-yr').value;
   document.getElementById('nsc-preview').textContent = yr ? `${term} ${yr}` : '—';
   const name = `${term} ${yr}`;
   const dup = yr && semesters.some(s => s.name === name);
   document.getElementById('nsc-dup').classList.toggle('show', !!dup);
   document.getElementById('btn-nsc').disabled = !!dup || !yr;
 }
+  
 document.addEventListener('input', e => { if (['nsc-term', 'nsc-yr'].includes(e.target.id)) updateNsc(); });
+  
 async function createSem() {
-  const term = document.getElementById('nsc-term').value, yr = document.getElementById('nsc-yr').value;
+  const term = document.getElementById('nsc-term').value;
+  const yr = document.getElementById('nsc-yr').value;
   if (!yr) return;
   const name = `${term} ${yr}`;
   if (semesters.some(s => s.name === name)) return;
   const id = name.toLowerCase().replace(/\s+/g, '-');
+  const activeSem = appData.semesters.find(s => s.status === 'active');
+  const status = activeSem ? 'draft' : 'active';
   try {
-    await adminSaveSemester({ id, name, status: 'active' });
-    semesters.unshift({ id, name, status: 'active' });
+    await adminSaveSemester({ id, name, status });
+    const newSem = { id, name, status };
+    appData.semesters.unshift(newSem);
+    semesters = appData.semesters;
     selSem = id;
-    showNsc = false;
-    document.getElementById('nsc').classList.remove('open');
-    renderSemPills();
-    showToast(`Semester "${name}" created.`);
+    closeNewSemModal();
+    renderEmSemPills(id);
+    showToast(`Semester "${name}" created${status === 'draft' ? ' (draft)' : ''}.`);
   } catch (err) { showToast('Error: ' + err.message); }
 }
 
