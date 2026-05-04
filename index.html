@@ -206,14 +206,13 @@ function renderEmSemPills(currentSemId, expanded) {
   const activeSem = appData.semesters.find(s => s.status === 'active');
   const draftSems = appData.semesters.filter(s => s.status === 'draft');
 
-  // selSem 결정
   if (currentSemId) selSem = currentSemId;
   else if (activeSem) selSem = activeSem.id;
   else if (draftSems.length) selSem = draftSems[0].id;
   else if (semesters.length) selSem = semesters[0].id;
 
   if (!activeSem && !draftSems.length) {
-    // State 1 — active 학기 없음
+    // active도 draft도 없을 때 — New semester만
     const np = document.createElement('button');
     np.className = 'sp new';
     np.textContent = '＋ New semester';
@@ -222,42 +221,23 @@ function renderEmSemPills(currentSemId, expanded) {
     return;
   }
 
-  if (expanded) {
-    // State 3 — 전체 학기 목록 펼침
-    appData.semesters.forEach(s => {
-      const p = document.createElement('button');
-      p.className = 'sp' + (s.id === selSem ? ' sel' : '');
-      p.innerHTML = s.status === 'draft'
-        ? `${escapeHtml(s.name)} <span style="...">draft</span>`
-        : escapeHtml(s.name);
-      p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
-      c.appendChild(p);
-    });
-    // ＋ New semester 버튼
-    const np = document.createElement('button');
-    np.className = 'sp new';
-    np.textContent = '＋ New semester';
-    np.onclick = () => openNewSemModal();
-    c.appendChild(np);
-  } else {
-    // State 2 — active/draft만 표시
-    appData.semesters.filter(s => s.status === 'active' || s.status === 'draft').forEach(s => {
-      const p = document.createElement('button');
-      p.className = 'sp' + (s.id === selSem ? ' sel' : '');
-      p.innerHTML = s.status === 'draft'
-        ? `${escapeHtml(s.name)} <span style="...">draft</span>`
-        : escapeHtml(s.name);
-      p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
-      c.appendChild(p);
-    });
-    // Change semester 버튼
-    const cb = document.createElement('button');
-    cb.className = 'sp change';
-    cb.textContent = 'Change semester';
-    cb.style.cssText = 'font-size:.8rem;';
-    cb.onclick = () => renderEmSemPills(selSem, true);
-    c.appendChild(cb);
-  }
+  // active + draft 학기 모두 바로 표시
+  appData.semesters.filter(s => s.status === 'active' || s.status === 'draft').forEach(s => {
+    const p = document.createElement('button');
+    p.className = 'sp' + (s.id === selSem ? ' sel' : '');
+    p.innerHTML = s.status === 'draft'
+      ? `${escapeHtml(s.name)} <span style="...">draft</span>`
+      : escapeHtml(s.name);
+    p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
+    c.appendChild(p);
+  });
+
+  // ＋ New semester 버튼 항상 표시
+  const np = document.createElement('button');
+  np.className = 'sp new';
+  np.textContent = '＋ New semester';
+  np.onclick = () => openNewSemModal();
+  c.appendChild(np);
 }
 
 function openNewSemModal() {
