@@ -228,8 +228,8 @@ function renderEmSemPills(currentSemId, expanded) {
       const p = document.createElement('button');
       p.className = 'sp' + (s.id === selSem ? ' sel' : '');
       p.innerHTML = s.status === 'draft'
-        ? `${s.name} <span style="font-size:.7rem;padding:2px 7px;background:rgba(26,26,46,.08);border-radius:20px;margin-left:4px;">draft</span>`
-        : s.name;
+        ? `${escapeHtml(s.name)} <span style="...">draft</span>`
+        : escapeHtml(s.name);
       p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
       c.appendChild(p);
     });
@@ -245,8 +245,8 @@ function renderEmSemPills(currentSemId, expanded) {
       const p = document.createElement('button');
       p.className = 'sp' + (s.id === selSem ? ' sel' : '');
       p.innerHTML = s.status === 'draft'
-        ? `${s.name} <span style="font-size:.7rem;padding:2px 7px;background:rgba(26,26,46,.08);border-radius:20px;margin-left:4px;">draft</span>`
-        : s.name;
+        ? `${escapeHtml(s.name)} <span style="...">draft</span>`
+        : escapeHtml(s.name);
       p.onclick = () => { selSem = s.id; renderEmSemPills(s.id, false); };
       c.appendChild(p);
     });
@@ -325,10 +325,9 @@ async function loadAll() {
     semesters = appData.semesters;
 
     const activeSem = appData.semesters.find(s => s.status === 'active');
-    if (activeSem) {
-      appData.projects = await sbGet(TBL_PROJECTS,
-        `semester_id=eq.${activeSem.id}&order=created_at.desc`);
-    }
+    appData.projects = activeSem
+      ? await sbGet(TBL_PROJECTS, `semester_id=eq.${activeSem.id}&order=created_at.desc`)
+      : [];
 
     const allVotes = await sbGet(TBL_VOTES, 'select=project_id,voter_token');
     allVotes.forEach(v => {
@@ -1957,9 +1956,9 @@ function renderGallery() {
           <div class="pthumb-label">${p.video_url ? 'Video' : 'Video can be added later'}</div>
         </div>
         <div class="pbody">
-          <div class="pname">${p.title}</div>
-          <div class="pteam">${p.team_name||''}</div>
-          <div class="psup">${p.supervisor_names?.length ? 'Sup. '+p.supervisor_names.join(', ') : p.supervisor_email ? 'Sup. '+p.supervisor_email : ''}</div>
+          <div class="pname">${escapeHtml(p.title)}</div>
+          <div class="pteam">${escapeHtml(p.team_name||'')}</div>
+          <div class="psup">${p.supervisor_names?.length ? 'Sup. '+p.supervisor_names.map(n=>escapeHtml(n)).join(', ') : p.supervisor_email ? 'Sup. '+escapeHtml(p.supervisor_email) : ''}</div>
           <div class="pfoot">
             <div style="display:flex;align-items:center;gap:5px">
               <button class="hbtn${liked?' liked':''}" onclick="event.stopPropagation();handleVote('${p.id}')">${liked?'❤️':'🤍'}</button>
@@ -1988,9 +1987,9 @@ function renderGallery() {
           <span class="gl-play">${p.video_url ? '▶' : 'AIR'}</span>
         </div>
         <div>
-          <div class="gl-row-title">${p.title}</div>
-          <div class="gl-row-sub">${p.team_name||''}${p.supervisor_names?.length ? ' · Sup. '+p.supervisor_names.join(', ') : ''}</div>
-          <div class="gl-row-tags">${(p.tags||[]).map(t=>`<span class="gl-row-tag">${t}</span>`).join('')}</div>
+          <div class="gl-row-title">${escapeHtml(p.title)}</div>
+          <div class="gl-row-sub">${escapeHtml(p.team_name||'')}${p.supervisor_names?.length ? ' · Sup. '+p.supervisor_names.map(n=>escapeHtml(n)).join(', ') : ''}</div>
+          <div class="gl-row-tags">${(p.tags||[]).map(t=>`<span class="gl-row-tag">${escapeHtml(t)}</span>`).join('')}</div>
         </div>
         <div class="gl-row-right">
           <div class="gl-row-stat">
@@ -2074,9 +2073,9 @@ async function renderArchiveContent() {
             <div class="arc-thumb-play">${p.video_url ? '▶' : 'AIR'}</div>
           </div>
           <div class="arc-body-sm">
-            <div class="arc-name-sm">${p.title}</div>
-            <div class="arc-team-sm">${p.team_name||''}</div>
-            <div class="arc-tags-sm">${(p.tags||[]).map(t=>`<span class="arc-tag-sm">${t}</span>`).join('')}</div>
+            <div class="arc-name-sm">${escapeHtml(p.title)}</div>
+            <div class="arc-team-sm">${escapeHtml(p.team_name||'')}</div>
+            <div class="arc-tags-sm">${(p.tags||[]).map(t=>`<span class="arc-tag-sm">${escapeHtml(t)}</span>`).join('')}</div>
           </div>`;
         grid.appendChild(c);
       });
@@ -2092,9 +2091,9 @@ async function renderArchiveContent() {
             <span class="gl-play">${p.video_url ? '▶' : 'AIR'}</span>
           </div>
           <div>
-            <div class="gl-row-title">${p.title}</div>
-            <div class="gl-row-sub">${p.team_name||''}</div>
-            <div class="gl-row-tags">${(p.tags||[]).map(t=>`<span class="gl-row-tag">${t}</span>`).join('')}</div>
+            <div class="gl-row-title">${escapeHtml(p.title)}</div>
+            <div class="gl-row-sub">${escapeHtml(p.team_name||'')}</div>
+            <div class="gl-row-tags">${(p.tags||[]).map(t=>`<span class="gl-row-tag">${escapeHtml(t)}</span>`).join('')}</div>
           </div>
           <div class="gl-row-right">
             <span class="gl-row-votes">♡ ${appData.votes[p.id]||0}</span>
@@ -2170,9 +2169,9 @@ function renderLB() {
               </div>
               <div class="award-body">
                 <div>
-                  <div class="award-name">${aw.award_name}</div>
-                  <div class="award-proj-title">${proj.title||aw.project_id}</div>
-                  <div class="award-members">${proj.team_name||''}</div>
+                  <div class="award-name">${escapeHtml(aw.award_name)}</div>
+                  <div class="award-proj-title">${escapeHtml(proj.title||aw.project_id)}</div>
+                  <div class="award-members">${escapeHtml(proj.team_name||'')}</div>
                 </div>
                 <div class="award-hearts">♡ ${appData.votes[aw.project_id]||0} votes</div>
               </div>`;
@@ -2191,9 +2190,9 @@ function renderLB() {
                 <span class="gl-play">${proj.video_url ? '▶' : 'AIR'}</span>
               </div>
               <div>
-                <div class="aw-badge">${aw.award_name}</div>
-                <div class="gl-row-title">${proj.title||aw.project_id}</div>
-                <div class="gl-row-sub">${proj.team_name||''}</div>
+                <div class="aw-badge">${escapeHtml(aw.award_name)}</div>
+                <div class="gl-row-title">${escapeHtml(proj.title||aw.project_id)}</div>
+                <div class="gl-row-sub">${escapeHtml(proj.team_name||'')}</div>
               </div>
               <div class="gl-row-right">
                 <span class="gl-row-votes">♡ ${appData.votes[aw.project_id]||0}</span>
@@ -2217,7 +2216,7 @@ function lbDataFor(sem) { return { status: sem.status, slots: [{ awardName: '', 
 
 function buildCvHTML(semId, data) {
   let h = `<div class="cv-panel-title">Set award winners</div><div class="cv-panel-sub">Name each award and choose the winning project.</div>`;
-  const projOpts = appData.projects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+  const projOpts = appData.projects.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)}</option>`).join('');
   h += `<div class="cv-slot" id="cv-slots-${semId}">
     <div><div class="cvsl">Award name</div><input class="cvsi" id="cv-name-0" placeholder="e.g. Best Innovation"></div>
     <div><div class="cvsl">Winning project</div><select class="cvss" id="cv-proj-0">${projOpts}</select></div>
@@ -2230,10 +2229,10 @@ function buildCvHTML(semId, data) {
 
 function buildEditHTML(semId, awards) {
   let h = `<div class="edit-area-title">✏ Editing awards</div>`;
-  const projOpts = appData.projects.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+  const projOpts = appData.projects.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)}</option>`).join('');
   awards.forEach((aw, ai) => {
     h += `<div class="edit-slot">
-      <div><div class="esl">Award name</div><input class="esi" value="${aw.award_name}" oninput="updateAwardName('${aw.id}',this.value)"></div>
+      <div><div class="esl">Award name</div><input class="esi" value="${escapeHtml(aw.award_name)}" oninput="updateAwardName('${escapeHtml(aw.id)}',this.value)"></div>
       <div><div class="esl">Winning project</div><select class="ess" onchange="updateAwardProj('${aw.id}',this.value)">${projOpts}</select></div>
     </div>`;
   });
@@ -2437,6 +2436,8 @@ function cancelEditCmt(cmtId, original) {
 }
 
 async function saveEditCmt(cmtId) {
+  const mine = JSON.parse(localStorage.getItem('airshow_my_cmts') || '[]');
+  if (!mine.includes(cmtId)) { showToast('You can only edit your own comments.'); return; }
   const newText = document.getElementById(`edit-ta-${cmtId}`).value.trim();
   if (!newText) return;
   try {
@@ -2463,6 +2464,8 @@ async function postCmt() {
   const textEl = document.getElementById('cmt-textarea');
   const text = textEl.value.trim();
   if (!text) return;
+  if (text.length > 500) { showToast('Comment is too long (max 500 chars).'); return; }  // ← 여기
+
   try {
     const result = await postCommentDB(detailProjId, nameEl.value, text);
     const newId = (Array.isArray(result) ? result[0] : result)?.id;
@@ -2506,7 +2509,7 @@ async function checkPw() {
     password,
   });
 
-  if (error || !data.session || email !== 'kjy@taejae.ac.kr') {
+  if (error || !data.session) {
     document.getElementById('pw-err').style.display = 'block';
     return;
   }
