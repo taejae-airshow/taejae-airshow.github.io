@@ -692,7 +692,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .pbody{padding:clamp(12px,1.5vw,16px);}
 .pname{font-weight:600;font-size:clamp(1.05rem,1.5vw,1.2rem);margin-bottom:4px;line-height:1.35;}
 .pteam{font-size:1rem;color:var(--m);margin-bottom:2px;}
-.psup{font-size:1rem;color:rgba(26,26,46,.4);margin-bottom:10px;}
+.psup{font-size:.9rem;color:var(--m);margin-bottom:10px;}
+.psup-label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;opacity:.5;margin-bottom:2px;}
 .pfoot{display:flex;align-items:center;justify-content:space-between;}
 .hbtn{background:none;border:none;cursor:pointer;font-size:1.1rem;padding:2px;transition:transform .15s;}
 .hbtn:active{transform:scale(1.35);}
@@ -1983,7 +1984,9 @@ function renderGallery() {
         <div class="pbody">
           <div class="pname">${escapeHtml(p.title)}</div>
           <div class="pteam">${p.member_names?.length ? p.member_names.join(', ') : escapeHtml(p.team_name||'')}</div>
-          <div class="psup">${p.supervisor_names?.length ? 'Sup. '+p.supervisor_names.map(n=>escapeHtml(n)).join(', ') : p.supervisor_email ? 'Sup. '+escapeHtml(p.supervisor_email) : ''}</div>
+          <div class="psup">${p.supervisor_names?.length ? 
+            '<span class="psup-label">Supervisor</span>'+p.supervisor_names.map(n=>escapeHtml(n)).join(', ') : 
+            p.supervisor_email ? '<span class="psup-label">Supervisor</span>'+escapeHtml(p.supervisor_email) : ''}</div>
           <div class="pfoot">
             <div style="display:flex;align-items:center;gap:5px">
               <button class="hbtn${liked?' liked':''}" onclick="event.stopPropagation();handleVote('${p.id}')">${liked?'❤️':'🤍'}</button>
