@@ -2306,17 +2306,21 @@ function renderLB() {
 function lbDataFor(sem) { return { status: sem.status, slots: [{ awardName: '', projId: '' }] }; }
 
 function buildCvHTML(semId, data) {
-  let h = `<div class="cv-panel-title">Set award winners</div><div class="cv-panel-sub">Name each award and choose the winning project.</div>`;
+  const FIXED_AWARDS = [
+    'Innovative Research Award',
+    'Real-world Impact Award',
+    'Outstanding Presentation Award',
+  ];
+  let h = `<div class="cv-panel-title">Set award winners</div><div class="cv-panel-sub">각 Award의 수상 프로젝트를 선택하세요.</div>`;
   const projOpts = appData.projects.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)}</option>`).join('');
-  h += `<div class="cv-slot" id="cv-slots-${semId}">
-    <div><div class="cvsl">Award name</div><input class="cvsi" id="cv-name-0" placeholder="e.g. Best Innovation"></div>
-    <div><div class="cvsl">Winning project</div><select class="cvss" id="cv-proj-0">${projOpts}</select></div>
-  </div>`;
-  h += `<button class="btn-add-cvslot" onclick="addCvSlot('${semId}')">＋ Add another award</button>`;
-  h += `<div class="cv-warn">⚠ Once confirmed, voting for this semester will stop and cannot be reopened.</div>`;
-  h += `<div class="cv-actions"><button class="btn-cv-cancel" onclick="toggleCvPanel('${semId}')">Cancel</button><button class="btn-cv-confirm" onclick="confirmCloseVoting('${semId}')">Confirm & close voting</button></div>`;
-  return h;
-}
+  h += `<div class="cv-slot" id="cv-slots-${semId}">`;
+  FIXED_AWARDS.forEach((name, i) => {
+    h += `
+      <div><div class="cvsl">Award name</div><input class="cvsi" id="cv-name-${i}" value="${name}" readonly></div>
+      <div><div class="cvsl">Winning project</div><select class="cvss" id="cv-proj-${i}"><option value="">— Select —</option>${projOpts}</select></div>`;
+  });
+  h += `</div>`;
+  cvSlotCount = FIXED_AWARDS.length;  // slot 카운트 고정
 
 function buildEditHTML(semId, awards) {
   let h = `<div class="edit-area-title">✏ Editing awards</div>`;
