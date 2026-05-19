@@ -1704,8 +1704,12 @@ async function submitEditModal() {
     tags: emTags,
     video_url: document.getElementById('em-video-url').value.trim() || null,
     card_color: document.querySelector('#em-swatches .sw.sel')?.style.background || SW_COLORS[0],
-    supervisor_emails: selectedFaculty.map(f => f.email).filter(Boolean),
-    supervisor_names: selectedFaculty.map(formatFacultyName).filter(Boolean),
+    supervisor_emails: selectedFaculty.length
+      ? selectedFaculty.map(f => f.email).filter(Boolean)
+      : (appData.projects.find(p => p.id === currentProjectId)?.supervisor_emails || []),
+    supervisor_names: selectedFaculty.length
+      ? selectedFaculty.map(formatFacultyName).filter(Boolean)
+      : (appData.projects.find(p => p.id === currentProjectId)?.supervisor_names || []),
     member_ids: selectedStudents.length
       ? selectedStudents.map(s => s.id)
       : document.getElementById('em-members').value.split(',').map(m => m.trim()).filter(Boolean),
