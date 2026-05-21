@@ -674,6 +674,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .vote-banner-btn{flex-shrink:0;padding:12px 26px;background:var(--a);color:#fff;
   border:none;border-radius:12px;font-size:1rem;font-weight:600;
   cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+@media (max-width: 540px) {
+  .vote-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px 20px;
+  }
+
+  .vote-banner-icon {
+    align-self: flex-start;
+  }
+
+  .vote-banner-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
 
 /* ── VOTE OVERLAY ── */
 .voverlay-backdrop{position:fixed;inset:0;background:rgba(26,26,46,.45);
