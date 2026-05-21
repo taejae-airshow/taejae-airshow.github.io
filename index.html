@@ -25,6 +25,9 @@ const TBL_AWARDS    = 'air_awards';
 const TBL_FACULTY = 'faculty_profiles';
 const TBL_STUDENTS = 'students';
 
+// ── VOTING CONFIG ──
+const VOTE_MAX_PICKS = 1; // 학기당 선택 가능한 프로젝트 수
+
 function getYouTubeId(url) {
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
@@ -163,16 +166,6 @@ async function sbGet(table, params = '') {
   return r.json();
 }
 
-async function toggleVMHeart() {
-  if (detailProjId === null) return;
-  const btn = document.getElementById('vm-heart');
-  btn.style.transform = 'scale(1.3)';
-  setTimeout(() => btn.style.transform = '', 200);
-  await toggleVote(detailProjId);
-  const liked = appData.myVotes.includes(detailProjId);
-  document.getElementById('vm-heart').textContent = liked ? '❤️' : '🤍';
-  document.getElementById('vm-cnt').textContent = appData.votes[detailProjId] || 0;
-}
   
 async function sbInsert(table, row) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
@@ -291,8 +284,9 @@ let appData = {
   semesters: [],
   projects:  [],
   draftProjects: [],  // ← 추가
-  votes:     {},   // { project_id: count }
-  myVotes:   [],   // project_ids voted by this voter_token
+  votes:        {},  // admin용 집계 (project_id: count)
+  myVotes:      [],  // 삭제 — 사용 안 함
+  communityVotes: [], // 이번 세션에서 투표한 project_id 목록 (voter_token으로 로드)
   awards:    [],
   comments:  {},   // { project_id: [comments] }
   commentCounts: {},  // { project_id: count }
@@ -317,17 +311,6 @@ async function loadAll() {
       appData.draftProjects.push(...dp.map(p => ({ ...p, _draftSemName: ds.name, _draftSemId: ds.id })));
     }
 
-    appData.votes = {};
-    appData.myVotes = [];
-    const allVotes = await sbGet(TBL_VOTES, 'select=project_id,voter_token');
-    allVotes.forEach(v => {
-      appData.votes[v.project_id] = (appData.votes[v.project_id] || 0) + 1;
-    });
-
-    const myVotes = await sbGet(TBL_VOTES,
-      `voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}&select=project_id`);
-    appData.myVotes = myVotes.map(v => v.project_id);
-
     appData.awards = await sbGet(TBL_AWARDS,
       'order=semester_id.desc,display_order.asc');
 
@@ -350,32 +333,6 @@ async function loadAll() {
   }
 }
 
-async function toggleVote(projectId) {
-  const alreadyVoted = appData.myVotes.includes(projectId);
-  try {
-    if (alreadyVoted) {
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/${TBL_VOTES}` +
-        `?project_id=eq.${projectId}&voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}`,
-        { method: 'DELETE', headers: sbAnonHeaders() }
-      );
-      appData.myVotes = appData.myVotes.filter(id => id !== projectId);
-      appData.votes[projectId] = Math.max(0, (appData.votes[projectId] || 1) - 1);
-    } else {
-      await sbInsert(TBL_VOTES, { project_id: projectId, voter_token: VOTER_TOKEN });
-      appData.myVotes.push(projectId);
-      appData.votes[projectId] = (appData.votes[projectId] || 0) + 1;
-    }
-    renderGallery();
-    if (detailProjId !== null && document.getElementById('vm-heart')) {
-      document.getElementById('vm-heart').textContent = appData.myVotes.includes(detailProjId) ? '❤️' : '🤍';
-      document.getElementById('vm-cnt').textContent = appData.votes[detailProjId] || 0;
-    }
-  } catch (err) {
-    console.error('Vote error:', err);
-    showToast('Vote error: ' + err.message);
-  }
-}
 
 async function postCommentDB(projectId, authorName, content) {
   const result = await sbInsert(TBL_COMMENTS, {
@@ -704,6 +661,75 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .add-empty-card:hover{background:rgba(26,26,46,.025);}
 .add-empty-card .plus{font-size:2rem;color:rgba(26,26,46,.2);}
 .adm .add-empty-card{display:flex;}
+
+/* ── VOTE BANNER ── */
+.vote-banner{background:var(--card);border:1.5px solid rgba(230,52,98,.25);
+  border-radius:16px;padding:24px 28px;display:flex;align-items:center;
+  justify-content:space-between;gap:24px;margin:0 0 1.5rem;}
+.vote-banner-icon{width:52px;height:52px;border-radius:50%;
+  background:rgba(230,52,98,.08);border:1.5px solid rgba(230,52,98,.2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.4rem;}
+.vote-banner-title{font-size:1.05rem;font-weight:600;color:var(--txt);margin-bottom:4px;}
+.vote-banner-sub{font-size:.82rem;color:var(--m);line-height:1.6;}
+.vote-banner-btn{flex-shrink:0;padding:12px 26px;background:var(--a);color:#fff;
+  border:none;border-radius:12px;font-size:.92rem;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+
+/* ── VOTE OVERLAY ── */
+.voverlay-backdrop{position:fixed;inset:0;background:rgba(26,26,46,.45);
+  z-index:500;display:flex;align-items:flex-start;justify-content:center;
+  padding-top:5vh;overflow-y:auto;}
+.voverlay-sheet{width:min(600px,95%);background:var(--card);border-radius:18px;
+  border:1px solid var(--b);margin-bottom:2rem;overflow:hidden;}
+.voverlay-hdr{padding:16px 20px;border-bottom:1px solid var(--b);
+  display:flex;align-items:center;justify-content:space-between;}
+.voverlay-title{font-size:1rem;font-weight:600;color:var(--txt);}
+.voverlay-close{background:none;border:none;cursor:pointer;
+  font-size:1.3rem;color:var(--m);line-height:1;}
+.voverlay-info{padding:12px 20px 0;font-size:.85rem;color:var(--m);line-height:1.6;}
+.voverlay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px;}
+.vov-card{border:1.5px solid var(--b);border-radius:10px;overflow:hidden;
+  cursor:pointer;transition:border-color .15s;}
+.vov-card:hover{border-color:rgba(230,52,98,.4);}
+.vov-card.selected{border-color:var(--a);box-shadow:0 0 0 3px rgba(230,52,98,.1);}
+.vov-thumb{width:100%;aspect-ratio:16/9;background:#1a1a2e;position:relative;
+  display:flex;align-items:center;justify-content:center;font-size:.65rem;
+  color:rgba(255,255,255,.4);letter-spacing:.05em;}
+.vov-check{position:absolute;top:5px;right:5px;width:18px;height:18px;
+  background:var(--a);border-radius:50%;display:none;align-items:center;
+  justify-content:center;color:#fff;font-size:10px;}
+.vov-card.selected .vov-check{display:flex;}
+.vov-body{padding:8px 10px;}
+.vov-name{font-size:.8rem;font-weight:600;color:var(--txt);
+  line-height:1.3;margin-bottom:2px;}
+.vov-team{font-size:.72rem;color:var(--m);}
+.voverlay-footer{padding:14px 20px;border-top:1px solid var(--b);}
+.voverlay-email-row{display:flex;gap:10px;align-items:center;}
+.voverlay-email{flex:1;padding:10px 13px;border:1px solid var(--b);
+  border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;
+  background:var(--bg);color:var(--txt);outline:none;}
+.voverlay-email:focus{border-color:var(--a);}
+.voverlay-submit{padding:10px 22px;background:var(--a);color:#fff;border:none;
+  border-radius:9px;font-size:.9rem;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.voverlay-submit:disabled{opacity:.4;cursor:not-allowed;}
+.voverlay-hint{font-size:.75rem;color:var(--m);margin-top:8px;line-height:1.5;}
+
+/* ── ADMIN VOTE RESULTS ── */
+.adm-vote-section{background:var(--card);border:1px solid var(--b);
+  border-radius:14px;padding:18px 20px;margin-bottom:1.2rem;}
+.adm-vote-hdr{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+.adm-vote-title{font-size:.95rem;font-weight:600;color:var(--txt);}
+.adm-vote-table{width:100%;border-collapse:collapse;}
+.adm-vote-table th{font-size:.7rem;font-weight:500;color:var(--m);
+  text-transform:uppercase;letter-spacing:.07em;padding:0 0 8px;
+  text-align:left;border-bottom:1px solid var(--b);}
+.adm-vote-table td{padding:9px 0;border-bottom:1px solid rgba(26,26,46,.06);
+  font-size:.85rem;color:var(--txt);vertical-align:middle;}
+.adm-vote-bar-bg{height:5px;background:var(--ab);border-radius:3px;
+  overflow:hidden;width:80px;}
+.adm-vote-bar-fill{height:100%;background:var(--a);border-radius:3px;}
 
 /* ── LEADERBOARD ── */
 .lb-group{margin-bottom:2.5rem;}
@@ -1242,11 +1268,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         </div>
       </div>
   
-      <!-- Votes -->
-      <div class="votes-section">
-        <button class="bh-btn" id="vm-heart" onclick="toggleVMHeart()">🤍</button>
-        <div class="bh-cnt" id="vm-cnt">0</div>
-        <div class="bh-lbl">votes</div>
+      <!-- VOTE BANNER -->
+      <div id="vote-banner-wrap" style="display:none;padding:0 var(--pad);">
+        <div class="vote-banner">
+          <div class="vote-banner-icon">🏆</div>
+          <div>
+            <div class="vote-banner-title">
+              Which project deserves the Outstanding Presentation Award?
+            </div>
+            <div class="vote-banner-sub">
+              Voted on by the <strong>entire Taejae community</strong>
+              · One vote per member · Results revealed at end of semester
+            </div>
+          </div>
+          <button class="vote-banner-btn" onclick="openVoteOverlay()">
+            Cast your vote
+          </button>
+        </div>
       </div>
   
       <!-- Comments -->
@@ -1958,7 +1996,8 @@ function renderGallery() {
   document.getElementById('g-count-lbl').textContent = `${sorted.length} projects`;
   document.getElementById('stat-cur').textContent = appData.projects.length;
   const totalVotes = Object.values(appData.votes).reduce((a, b) => a + b, 0);
-  document.getElementById('stat-votes').textContent = totalVotes.toLocaleString();
+  const communityTotal = Object.values(appData.votes).reduce((a,b) => a+b, 0);
+  document.getElementById('stat-votes').textContent = communityTotal.toLocaleString();
   document.getElementById('app').classList.toggle('adm', isAdm);
 
   if (galleryView === 'grid') {
@@ -1988,9 +2027,8 @@ function renderGallery() {
             '<span class="psup-label">Supervisor</span>'+p.supervisor_names.map(n=>escapeHtml(n)).join(', ') : 
             p.supervisor_email ? '<span class="psup-label">Supervisor</span>'+escapeHtml(p.supervisor_email) : ''}</div>
           <div class="pfoot">
-            <div style="display:flex;align-items:center;gap:5px">
-              <button class="hbtn${liked?' liked':''}" onclick="event.stopPropagation();handleVote('${p.id}')">${liked?'❤️':'🤍'}</button>
-              <span class="hcnt">${voteCount}</span>
+            <div class="pfoot">
+              <span class="ccnt">💬 ${appData.commentCounts[p.id] || 0}</span>
             </div>
             <span class="ccnt">💬 ${appData.commentCounts[p.id] || 0}</span>
           </div>
@@ -2021,10 +2059,6 @@ function renderGallery() {
         </div>
         <div class="gl-row-right">
           <div class="gl-row-stat">
-            <button class="gl-row-stat-btn${liked?' liked':''}" onclick="event.stopPropagation();handleVote('${p.id}')">${liked?'❤️':'🤍'}</button>
-            <span class="gl-row-stat-num">${voteCount}</span>
-          </div>
-          <div class="gl-row-stat">
             <span style="font-size:15px;line-height:1;">💬</span>
             <span class="gl-row-stat-num">${appData.commentCounts[p.id] || 0}</span>
           </div>
@@ -2040,12 +2074,176 @@ function renderGallery() {
       g.appendChild(addRow);
     }
   }
+  // renderGallery() 끝, draftSection 렌더링 직전에 추가
+  const bannerWrap = document.getElementById('vote-banner-wrap');
+  if (bannerWrap) {
+    bannerWrap.style.display = (activeSem && !isAdm) ? 'block' : 'none';
+  }
   // admin이고 draft 프로젝트가 있을 때만
   if (isAdm && appData.draftProjects?.length > 0) {
     renderDraftSection();
   }
 }
 
+
+// ── COMMUNITY VOTE OVERLAY ──
+
+// voter_token으로 이번 학기 기존 투표 로드
+async function loadMyVotes(semId) {
+  const rows = await sbGet(TBL_VOTES,
+    `voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}&semester_id=eq.${semId}&select=project_id`);
+  appData.communityVotes = rows.map(r => r.project_id);
+}
+
+// 오버레이 열기
+async function openVoteOverlay() {
+  const activeSem = appData.semesters.find(s => s.status === 'active');
+  if (!activeSem) return;
+
+  await loadMyVotes(activeSem.id);
+  const alreadyVoted = appData.communityVotes.length > 0;
+
+  // 기존 오버레이 제거
+  document.getElementById('vote-overlay')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'voverlay-backdrop';
+  backdrop.id = 'vote-overlay';
+  backdrop.onclick = e => { if (e.target === backdrop) closeVoteOverlay(); };
+
+  const prevTitle = alreadyVoted
+    ? `You voted for <strong>${escapeHtml(appData.projects.find(p => p.id === appData.communityVotes[0])?.title || '')}</strong>. You can update your selection below.`
+    : `Select up to <strong>${VOTE_MAX_PICKS}</strong> project${VOTE_MAX_PICKS > 1 ? 's' : ''}.`;
+
+  const projCards = appData.projects.map(p => {
+    const sel = appData.communityVotes.includes(p.id) ? 'selected' : '';
+    const tint = p.card_color || '#e8f4f8';
+    return `
+      <div class="vov-card ${sel}" data-pid="${p.id}" onclick="toggleVovCard(this)">
+        <div class="vov-thumb">
+          <div style="position:absolute;inset:0;background:${tint};opacity:.5;"></div>
+          <span style="position:relative;z-index:1;">${p.video_url ? '▶' : 'AIR'}</span>
+          <div class="vov-check">✓</div>
+        </div>
+        <div class="vov-body">
+          <div class="vov-name">${escapeHtml(p.title)}</div>
+          <div class="vov-team">${p.member_names?.length
+            ? p.member_names.join(', ')
+            : escapeHtml(p.team_name || '')}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  backdrop.innerHTML = `
+    <div class="voverlay-sheet">
+      <div class="voverlay-hdr">
+        <div class="voverlay-title">🏆 Outstanding Presentation Award — ${activeSem.name}</div>
+        <button class="voverlay-close" onclick="closeVoteOverlay()">✕</button>
+      </div>
+      <div class="voverlay-info">${prevTitle}</div>
+      <div class="voverlay-grid">${projCards}</div>
+      <div class="voverlay-footer">
+        <div class="voverlay-email-row">
+          <input class="voverlay-email" id="vote-email" type="email"
+            placeholder="your.name@taejae.ac.kr" autocomplete="email">
+          <button class="voverlay-submit" id="vote-submit-btn"
+            onclick="submitCommunityVote('${activeSem.id}')">
+            ${alreadyVoted ? 'Update my vote' : 'Cast your vote'}
+          </button>
+        </div>
+        <div class="voverlay-hint">
+          Your vote is anonymous · One vote per Taejae community member
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+}
+
+function closeVoteOverlay() {
+  document.getElementById('vote-overlay')?.remove();
+}
+
+// 카드 선택 토글 (VOTE_MAX_PICKS 제한)
+function toggleVovCard(el) {
+  const selected = document.querySelectorAll('#vote-overlay .vov-card.selected');
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+  } else {
+    if (selected.length >= VOTE_MAX_PICKS) {
+      // 이미 최대 선택 → 가장 먼저 선택된 것 해제 후 새로 선택
+      selected[0].classList.remove('selected');
+    }
+    el.classList.add('selected');
+  }
+}
+
+// 투표 제출 (delete 기존 + insert 새 투표)
+async function submitCommunityVote(semId) {
+  const email = document.getElementById('vote-email').value.trim();
+  if (!email || !email.includes('@')) {
+    showToast('Please enter a valid email address.');
+    return;
+  }
+
+  const picks = [...document.querySelectorAll('#vote-overlay .vov-card.selected')]
+    .map(el => el.dataset.pid);
+
+  if (!picks.length) {
+    showToast('Please select at least one project.');
+    return;
+  }
+
+  const btn = document.getElementById('vote-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    // 기존 투표 삭제 (voter_token + semester_id 기준)
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/${TBL_VOTES}` +
+      `?voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}&semester_id=eq.${semId}`,
+      { method: 'DELETE', headers: sbAnonHeaders() }
+    );
+
+    // 새 투표 insert
+    for (const pid of picks) {
+      await sbInsert(TBL_VOTES, {
+        project_id: pid,
+        voter_token: VOTER_TOKEN,
+        voter_email: email,
+        semester_id: semId,
+      });
+    }
+
+    appData.communityVotes = picks;
+    showToast('Your vote has been submitted. Thank you!');
+    closeVoteOverlay();
+    await loadAll();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Cast your vote';
+    showToast('Error: ' + err.message);
+  }
+}
+
+
+// ── ADMIN VOTE RESULTS (leaderboard에 삽입) ──
+// renderLB() 내 active semester 블록에 추가
+// buildCvHTML() 내 Outstanding Presentation Award 슬롯에
+// admin vote 집계를 자동으로 pre-fill하는 로직 추가:
+
+function getTopVotedProject() {
+  const activeSem = appData.semesters.find(s => s.status === 'active');
+  if (!activeSem) return null;
+  const semProjects = appData.projects.filter(p => p.semester_id === activeSem.id);
+  return semProjects.sort((a, b) =>
+    (appData.votes[b.id] || 0) - (appData.votes[a.id] || 0))[0] || null;
+}
+
+// buildCvHTML() 내 Outstanding Presentation Award select에 pre-select 추가:
+// id="cv-proj-2" (index 2)에 해당하는 select의 value를 getTopVotedProject()?.id로 설정
+  
 function renderDraftSection() {
   const existing = document.getElementById('draft-section');
   if (existing) existing.remove();
@@ -2104,8 +2302,7 @@ function renderDraftSection() {
           <div class="psup">${p.supervisor_names?.length ? 'Sup. ' + p.supervisor_names.map(n => escapeHtml(n)).join(', ') : ''}</div>
           <div class="pfoot">
             <div style="display:flex;align-items:center;gap:5px;">
-              <button class="hbtn" style="opacity:.35;pointer-events:none;">🤍</button>
-              <span class="hcnt">—</span>
+
             </div>
             <span class="ccnt">💬 ${appData.commentCounts[p.id] || 0}</span>
           </div>
@@ -2127,9 +2324,6 @@ async function publishSemester(semId) {
   } catch (err) { showToast('Error: ' + err.message); }
 }
   
-async function handleVote(projectId) {
-  await toggleVote(projectId);
-}
 
 async function delProject(id) {
   if (!confirm('Remove this project?')) return;
@@ -2231,9 +2425,13 @@ function renderLB() {
   appData.semesters.filter(s => s.status !== 'draft').forEach(sem => {
     const data = lbDataFor(sem);
     const grp = document.createElement('div'); grp.className = 'lb-group';
+
+    // ── 섹션 헤더 ──
     const hdr = document.createElement('div'); hdr.className = 'lb-sem-hdr';
-    const lbl = document.createElement('div'); lbl.className = 'lb-sem-lbl'; lbl.textContent = sem.name;
+    const lbl = document.createElement('div'); lbl.className = 'lb-sem-lbl';
+    lbl.textContent = sem.name;
     hdr.appendChild(lbl);
+
     if (isAdm) {
       if (sem.status === 'active') {
         const tw = document.createElement('div'); tw.className = 'tip-wrap';
@@ -2253,43 +2451,113 @@ function renderLB() {
       }
     }
     grp.appendChild(hdr);
+
+    // ── Active semester ──
     if (sem.status === 'active') {
       const notice = document.createElement('div'); notice.className = 'lb-active-notice';
       notice.innerHTML = `<strong>${sem.name}</strong> is currently open — award winners will appear here once voting closes.`;
       grp.appendChild(notice);
+
+      // Admin: community vote 집계 테이블
       if (isAdm) {
+        const semProjects = appData.projects.filter(p => p.semester_id === sem.id)
+          .sort((a, b) => (appData.votes[b.id] || 0) - (appData.votes[a.id] || 0));
+        const maxV = appData.votes[semProjects[0]?.id] || 1;
+        const totalV = semProjects.reduce((acc, p) => acc + (appData.votes[p.id] || 0), 0);
+
+        const voteSection = document.createElement('div');
+        voteSection.className = 'adm-vote-section';
+        voteSection.innerHTML = `
+          <div class="adm-vote-hdr">
+            <div class="adm-vote-title">
+              Outstanding Presentation — community votes
+              <span style="font-size:.78rem;font-weight:400;color:var(--m);margin-left:8px;">
+                ${totalV} vote${totalV !== 1 ? 's' : ''} total
+              </span>
+            </div>
+            <span class="live-pill"><span class="ldot"></span>Voting open</span>
+          </div>
+          <table class="adm-vote-table">
+            <thead><tr>
+              <th style="width:20px;">#</th>
+              <th>Project</th>
+              <th>Team</th>
+              <th style="width:90px;">Distribution</th>
+              <th style="text-align:right;">Votes</th>
+            </tr></thead>
+            <tbody>
+              ${semProjects.map((p, i) => `
+                <tr>
+                  <td style="color:var(--m);font-weight:500;font-size:.8rem;">${i + 1}</td>
+                  <td style="font-weight:500;">
+                    ${escapeHtml(p.title)}
+                    ${i === 0 && (appData.votes[p.id] || 0) > 0
+                      ? `<span style="font-size:.65rem;font-weight:600;letter-spacing:.05em;
+                          text-transform:uppercase;background:rgba(230,52,98,.08);
+                          color:var(--a);border:1px solid rgba(230,52,98,.2);
+                          border-radius:20px;padding:1px 7px;margin-left:6px;">top</span>`
+                      : ''}
+                  </td>
+                  <td style="font-size:.8rem;color:var(--m);">
+                    ${p.member_names?.length
+                      ? p.member_names.join(', ')
+                      : escapeHtml(p.team_name || '')}
+                  </td>
+                  <td>
+                    <div class="adm-vote-bar-bg">
+                      <div class="adm-vote-bar-fill"
+                        style="width:${Math.round(((appData.votes[p.id] || 0) / maxV) * 100)}%">
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align:right;font-weight:500;">
+                    ${appData.votes[p.id] || 0}
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`;
+        grp.appendChild(voteSection);
+
+        // Close voting 패널
         const cvp = document.createElement('div'); cvp.className = 'cv-panel';
         cvp.id = 'cvp-' + sem.id;
         cvp.innerHTML = buildCvHTML(sem.id, data);
         grp.appendChild(cvp);
       }
+
+    // ── Finalized semester ──
     } else {
       const semAwards = appData.awards.filter(a => a.semester_id === sem.id);
+
       if (editingLB[sem.id] && isAdm) {
         const ea = document.createElement('div'); ea.className = 'edit-area';
         ea.innerHTML = buildEditHTML(sem.id, semAwards);
         grp.appendChild(ea);
+
       } else if (semAwards.length > 0) {
         if (lbView === 'grid') {
           semAwards.forEach(aw => {
             const card = document.createElement('div'); card.className = 'award-card';
             const proj = appData.projects.find(p => p.id === aw.project_id) || {};
-            card.onclick = () => { const i = appData.projects.findIndex(p => p.id === aw.project_id); if (i > -1) showDetail(i, appData.projects[i]); };
+            card.onclick = () => {
+              const i = appData.projects.findIndex(p => p.id === aw.project_id);
+              if (i > -1) showDetail(i, appData.projects[i]);
+            };
             card.innerHTML = `
               <div class="award-video" style="background:#1a1a2e;">
-                <div style="position:absolute;inset:0;opacity:.15;background:${proj.card_color||'#e8f4f8'}"></div>
+                <div style="position:absolute;inset:0;opacity:.15;background:${proj.card_color || '#e8f4f8'}"></div>
                 <div class="play-btn">▶</div>
               </div>
               <div class="award-body">
                 <div>
                   <div class="award-name">${escapeHtml(aw.award_name)}</div>
-                  <div class="award-proj-title">${escapeHtml(proj.title||aw.project_id)}</div>
-                  <div class="award-members">${escapeHtml(proj.team_name||'')}</div>
+                  <div class="award-proj-title">${escapeHtml(proj.title || aw.project_id)}</div>
+                  <div class="award-members">${escapeHtml(proj.team_name || '')}</div>
                 </div>
-                <div class="award-hearts">♡ ${appData.votes[aw.project_id]||0} votes</div>
               </div>`;
             grp.appendChild(card);
           });
+
         } else {
           const list = document.createElement('div'); list.className = 'gl-list';
           semAwards.forEach(aw => {
@@ -2299,21 +2567,19 @@ function renderLB() {
             row.onclick = () => { if (i > -1) showDetail(i, appData.projects[i]); };
             row.innerHTML = `
               <div class="gl-thumb-sm ${proj.video_url ? 'has-video' : 'no-video'}">
-                <div class="gl-tint" style="background:${proj.card_color||'#e8f4f8'}"></div>
+                <div class="gl-tint" style="background:${proj.card_color || '#e8f4f8'}"></div>
                 <span class="gl-play">${proj.video_url ? '▶' : 'AIR'}</span>
               </div>
               <div>
                 <div class="aw-badge">${escapeHtml(aw.award_name)}</div>
-                <div class="gl-row-title">${escapeHtml(proj.title||aw.project_id)}</div>
-                <div class="gl-row-sub">${escapeHtml(proj.team_name||'')}</div>
-              </div>
-              <div class="gl-row-right">
-                <span class="gl-row-votes">♡ ${appData.votes[aw.project_id]||0}</span>
+                <div class="gl-row-title">${escapeHtml(proj.title || aw.project_id)}</div>
+                <div class="gl-row-sub">${escapeHtml(proj.team_name || '')}</div>
               </div>`;
             list.appendChild(row);
           });
           grp.appendChild(list);
         }
+
       } else {
         const notice = document.createElement('div');
         notice.style.cssText = 'font-size:.9rem;color:var(--m);font-style:italic;padding:8px 0;';
@@ -2321,6 +2587,7 @@ function renderLB() {
         grp.appendChild(notice);
       }
     }
+
     body.appendChild(grp);
   });
 }
@@ -2467,9 +2734,6 @@ async function openViewPage(idx, proj) {
     (proj.tags || []).map(t => `<span class="dtag">${t}</span>`).join('')
     || '<span style="color:var(--m);font-size:.85rem;">No tags</span>';
 
-  // votes
-  document.getElementById('vm-heart').textContent = appData.myVotes.includes(proj.id) ? '❤️' : '🤍';
-  document.getElementById('vm-cnt').textContent = appData.votes[proj.id] || 0;
 
   // comments
   initNickname();
