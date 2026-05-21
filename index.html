@@ -2182,7 +2182,12 @@ function renderGallery() {
   }
 }
 
-
+async function loadMyVotes(semId) {
+  const rows = await sbGet(TBL_VOTES,
+    `voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}&semester_id=eq.${semId}&select=project_id`);
+  appData.communityVotes = rows.map(r => r.project_id);
+}
+  
 // ── COMMUNITY VOTE (inline, no modal) ──
 
 let vbActiveSemId = null;
