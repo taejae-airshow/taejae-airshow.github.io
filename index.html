@@ -1166,23 +1166,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       <div id="ggrid" class="ggrid">
         <div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--m);font-size:.95rem;">Loading projects…</div>
       </div>
-    </div>
-    <!-- VOTE BANNER -->
-    <div id="vote-banner-wrap" style="display:none;padding:0 var(--pad);">
-      <div class="vote-banner">
-        <div class="vote-banner-icon">🏆</div>
-        <div>
-          <div class="vote-banner-title">
-            Which project deserves the Outstanding Presentation Award?
+      <!-- VOTE BANNER -->
+      <div id="vote-banner-wrap" style="display:none;margin-top:1.5rem;">
+        <div class="vote-banner">
+          <div class="vote-banner-icon">🏆</div>
+          <div>
+            <div class="vote-banner-title">
+              Which project deserves the Outstanding Presentation Award?
+            </div>
+            <div class="vote-banner-sub">
+              Voted on by the <strong>entire Taejae community</strong>
+              · One vote per member · Results revealed at end of semester
+            </div>
           </div>
-          <div class="vote-banner-sub">
-            Voted on by the <strong>entire Taejae community</strong>
-            · One vote per member · Results revealed at end of semester
-          </div>
+          <button class="vote-banner-btn" onclick="openVoteOverlay()">
+            Cast your vote
+          </button>
         </div>
-        <button class="vote-banner-btn" onclick="openVoteOverlay()">
-          Cast your vote
-        </button>
       </div>
     </div>
     <!-- LEADERBOARD -->
