@@ -691,6 +691,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   .vote-banner-btn,.vote-banner-change{width:100%;text-align:center;}
 }
 
+/* ── VOTE BANNER voting 상태 폼 ── */
+.vote-banner-email{flex:1;padding:11px 14px;border:1px solid var(--b);
+  border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.95rem;
+  background:var(--bg);color:var(--txt);outline:none;}
+.vote-banner-email:focus{border-color:var(--a);}
+.vote-banner-submit{flex-shrink:0;padding:11px 24px;background:var(--a);color:#fff;
+  border:none;border-radius:10px;font-size:.95rem;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.vote-banner-submit:disabled{opacity:.38;cursor:not-allowed;}
+.vote-banner-submit:not(:disabled):hover{opacity:.88;}
+@media(max-width:540px){
+  .vote-banner-email{width:100%;}
+  .vote-banner-submit{width:100%;text-align:center;}
+}
+  
 /* ── GALLERY 확장 애니메이션 ── */
 #sec-gallery{
   border:1.5px solid transparent;
@@ -1200,26 +1215,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       </div>
       
       <!-- voting 상태 배너 -->
-      <div id="vb-voting" class="vote-banner-idle" style="display:none; flex-direction:column; gap:10px; border-color:rgba(230,52,98,.5); background:rgba(230,52,98,.03);">
-        <div style="display:flex; align-items:center; gap:14px;">
-          <div class="vote-banner-icon">🏆</div>
+      <div id="vb-voting" class="vote-banner-idle" style="display:none; flex-direction:column; gap:16px; border-color:rgba(230,52,98,.45); background:rgba(230,52,98,.03); padding:22px 28px;">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div class="vote-banner-icon" style="width:52px; height:52px; font-size:1.4rem; flex-shrink:0;">🏆</div>
           <div style="flex:1; min-width:0;">
-            <div style="font-size:.95rem; font-weight:600; color:var(--a); margin-bottom:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <div style="font-size:clamp(1rem,1.4vw,1.15rem); font-weight:600; color:var(--a); margin-bottom:5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               Select a project above
-              <span id="vb-sel-pill" style="display:none; align-items:center; gap:5px; font-size:.75rem; font-weight:500; color:var(--a); background:rgba(230,52,98,.07); border:1px solid rgba(230,52,98,.2); border-radius:20px; padding:1px 9px;">
+              <span id="vb-sel-pill" style="display:none; align-items:center; gap:5px; font-size:.78rem; font-weight:500; color:var(--a); background:rgba(230,52,98,.07); border:1px solid rgba(230,52,98,.2); border-radius:20px; padding:2px 10px;">
                 <span style="width:5px; height:5px; border-radius:50%; background:var(--a); display:inline-block; flex-shrink:0;"></span>
                 <span id="vb-sel-name"></span>
               </span>
             </div>
-            <div style="font-size:.85rem; color:var(--m); line-height:1.5;">Cast your vote for the project that impressed you most. Open to the entire Taejae community — one vote per member.</div>
+            <div style="font-size:.9rem; color:var(--m); line-height:1.6;">Cast your vote for the project that impressed you most. Open to the entire Taejae community — one vote per member.</div>
           </div>
-          <button onclick="cancelVotingMode()" style="background:none; border:none; cursor:pointer; color:var(--m); font-size:1.3rem; line-height:1; flex-shrink:0; padding:0;">✕</button>
+          <button onclick="cancelVotingMode()" style="background:none; border:none; cursor:pointer; color:var(--m); font-size:1.4rem; line-height:1; flex-shrink:0; padding:4px; opacity:.7;" title="Cancel">✕</button>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
+        <div style="display:flex; gap:12px; align-items:center;">
           <input class="vote-banner-email" id="vb-email" type="email" placeholder="your_id@taejae.ac.kr" autocomplete="email" oninput="vbCheckReady()">
           <button class="vote-banner-submit" id="vb-submit-btn" disabled onclick="vbSubmit()">Submit vote</button>
         </div>
-        <div style="font-size:.75rem; color:var(--m); line-height:1.5;">🔒 Your email is converted to a one-way hash before saving — the original address is never stored. Voting is fully anonymous.</div>
+        <div style="font-size:.82rem; color:var(--m); line-height:1.6;">🔒 Your email is converted to a one-way hash before saving — the original address is never stored. Voting is fully anonymous.</div>
       </div>
     </div>
     <!-- LEADERBOARD -->
