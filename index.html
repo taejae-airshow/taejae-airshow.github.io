@@ -175,7 +175,8 @@ async function sbInsert(table, row) {
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
-    throw new Error(err.message || err.hint || `POST ${table} failed: ${r.status}`);
+    console.error('sbInsert error body:', err);   // ← 추가
+    throw new Error(err.message || err.hint || err.details || `POST ${table} failed: ${r.status}`);
   }
   return r.json();
 }
@@ -2309,11 +2310,12 @@ async function vbSubmit() {
     vbShowState('voted');
     showToast('Your vote has been submitted. Thank you!');
     await loadAll();
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = 'Submit vote';
-    showToast('Error: ' + err.message);
-  }
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Submit vote';
+        console.error('vbSubmit error:', err);   // ← 추가
+        showToast('Error: ' + err.message);
+    }
 }
 
 function vbShowState(state) {
