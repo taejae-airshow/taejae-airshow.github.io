@@ -105,7 +105,6 @@ function embedVideoPreview(wrapSelector, url) {
   const wrap = document.querySelector(wrapSelector);
   if (!wrap) return;
 
-  // YouTube — iframe 대신 썸네일 이미지로 표시
   if (ytId) {
     const player = document.createElement('div');
     player.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;cursor:pointer;';
@@ -125,7 +124,6 @@ function embedVideoPreview(wrapSelector, url) {
     return;
   }
 
-  // Google Drive — 새 탭으로 열기
   if (gdId) {
     const player = document.createElement('div');
     player.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;background:#1a1a2e;border-radius:16px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;';
@@ -141,7 +139,6 @@ function embedVideoPreview(wrapSelector, url) {
     return;
   }
 
-  // OneDrive — iframe 유지
   if (odUrl) {
     const player = document.createElement('div');
     player.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;';
