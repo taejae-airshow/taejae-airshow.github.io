@@ -776,6 +776,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   font-size:11px; font-weight:700; z-index:4; }
 .pcard.vov-selected .pcard-vcheck { display:flex; }
 
+/* ── GALLERY 확장 애니메이션 ── */
+#sec-gallery {
+  border: 1.5px solid transparent;
+  border-radius: 16px;
+  transition: border-color .35s ease, background .35s ease, padding .35s ease;
+}
+#sec-gallery.voting {
+  border-color: var(--a);
+  background: rgba(230,52,98,.03);
+  padding: 16px 18px 18px;
+}
+
 /* ── ADMIN VOTE RESULTS ── */
 .adm-vote-section{background:var(--card);border:1px solid var(--b);
   border-radius:14px;padding:18px 20px;margin-bottom:1.2rem;}
@@ -2281,6 +2293,7 @@ async function enterVotingMode() {
   secGallery.style.position = 'relative';
   document.getElementById('vframe-dim').style.display = 'block';
   wrap.style.display = 'block';
+  document.getElementById('sec-gallery').classList.add('voting');
 
   vbUpdateSelPill();
   document.getElementById('vb-email').value = '';
@@ -2290,6 +2303,7 @@ async function enterVotingMode() {
 function cancelVotingMode() {
   document.getElementById('vframe-dim').style.display = 'none';
   document.getElementById('vframe-wrap').style.display = 'none';
+  document.getElementById('sec-gallery').classList.remove('voting');
   vbSelectedCard = null;
   vbShowState(appData.communityVotes.length ? 'voted' : 'idle');
 }
@@ -2365,6 +2379,7 @@ async function vbSubmit() {
     document.querySelectorAll('#ggrid .pcard').forEach(c =>
       c.classList.remove('voting-mode', 'vov-selected'));
     vbSelectedCard = null;
+    document.getElementById('sec-gallery').classList.remove('voting');
     vbShowState('voted');
     showToast('Your vote has been submitted. Thank you!');
     await loadAll();
