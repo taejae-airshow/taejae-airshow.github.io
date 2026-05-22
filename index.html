@@ -175,8 +175,7 @@ async function sbInsert(table, row) {
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
-    console.error('sbInsert error body:', err);   // ← 추가
-    throw new Error(err.message || err.hint || err.details || `POST ${table} failed: ${r.status}`);
+    throw new Error(err.message || err.hint || `POST ${table} failed: ${r.status}`);
   }
   return r.json();
 }
@@ -690,12 +689,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 @media(max-width:540px){
   .vote-banner-idle,.vote-banner-voted{flex-direction:column;align-items:stretch;gap:14px;padding:18px 20px;}
   .vote-banner-btn,.vote-banner-change{width:100%;text-align:center;}
-  #vb-voting{padding:18px 20px !important; gap:14px !important;}
-  #vb-voting > div:first-child{align-items:flex-start;}
-  #vb-voting .vote-banner-icon{width:40px !important;height:40px !important;font-size:1.1rem !important;}
-  #vb-voting > div:nth-child(2){flex-direction:column;gap:10px;}
-  .vote-banner-email{width:100%;}
-  .vote-banner-submit{width:100%;text-align:center;}
 }
 
 /* ── VOTE BANNER voting 상태 폼 ── */
@@ -708,8 +701,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
 .vote-banner-submit:disabled{opacity:.38;cursor:not-allowed;}
 .vote-banner-submit:not(:disabled):hover{opacity:.88;}
+@media(max-width:540px){
+  .vote-banner-email{width:100%;}
+  .vote-banner-submit{width:100%;text-align:center;}
+}
 
-  
 /* ── GALLERY 확장 애니메이션 ── */
 #sec-gallery{
   border:1.5px solid transparent;
@@ -1220,6 +1216,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       
       <!-- voting 상태 배너 -->
       <div id="vb-voting" class="vote-banner-idle" style="display:none; flex-direction:column; gap:16px; border-color:rgba(230,52,98,.45); background:rgba(230,52,98,.03); padding:22px 28px;">
+        <!-- 상단: 아이콘 + 텍스트 + X -->
         <div style="display:flex; align-items:center; gap:16px;">
           <div class="vote-banner-icon" style="width:52px; height:52px; font-size:1.4rem; flex-shrink:0;">🏆</div>
           <div style="flex:1; min-width:0;">
@@ -1234,6 +1231,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
           </div>
           <button onclick="cancelVotingMode()" style="background:none; border:none; cursor:pointer; color:var(--m); font-size:1.4rem; line-height:1; flex-shrink:0; padding:4px; opacity:.7;" title="Cancel">✕</button>
         </div>
+        <!-- 하단: 이메일 + submit -->
         <div style="display:flex; gap:12px; align-items:center;">
           <input class="vote-banner-email" id="vb-email" type="email" placeholder="your_id@taejae.ac.kr" autocomplete="email" oninput="vbCheckReady()">
           <button class="vote-banner-submit" id="vb-submit-btn" disabled onclick="vbSubmit()">Submit vote</button>
@@ -2310,12 +2308,11 @@ async function vbSubmit() {
     vbShowState('voted');
     showToast('Your vote has been submitted. Thank you!');
     await loadAll();
-    } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Submit vote';
-        console.error('vbSubmit error:', err);   // ← 추가
-        showToast('Error: ' + err.message);
-    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Submit vote';
+    showToast('Error: ' + err.message);
+  }
 }
 
 function vbShowState(state) {
