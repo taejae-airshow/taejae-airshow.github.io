@@ -2076,7 +2076,7 @@ function renderGallery() {
     sorted.forEach((p, idx) => {
       const voteCount = appData.votes[p.id] || 0;
       const liked = appData.myVotes.includes(p.id);
-      const c = document.createElement('div'); c.className = 'pcard';
+      const c = document.createElement('div'); c.className = 'pcard'; c.dataset.pid = p.id;
       c.onclick = () => showDetail(idx, p);
       c.innerHTML = `
         <button class="pdel" onclick="event.stopPropagation();delProject('${p.id}')">✕</button>
