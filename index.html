@@ -691,70 +691,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   .vote-banner-btn,.vote-banner-change{width:100%;text-align:center;}
 }
 
-/* ── VOTE FRAME OVERLAY ── */
-.vframe-dim{position:fixed;inset:0;background:rgba(26,26,46,.42);z-index:200;display:none;}
-.vframe-wrap{position:absolute;left:0;right:0;z-index:201;display:none;}
-.vframe-inner{margin:0 28px;background:var(--card);border:2px solid var(--a);
-  border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(230,52,98,.12);}
-.vframe-hdr{padding:14px 18px;border-bottom:1px solid var(--b);
-  display:flex;align-items:flex-start;gap:12px;}
-.vframe-hicon{width:36px;height:36px;border-radius:50%;
-  background:rgba(230,52,98,.08);border:1px solid rgba(230,52,98,.2);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;}
-.vframe-htitle{font-size:.95rem;font-weight:600;color:var(--a);
-  margin-bottom:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.vframe-hsub{font-size:.82rem;color:var(--m);line-height:1.5;}
-.vframe-sel-pill{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;
-  font-weight:500;color:var(--a);background:rgba(230,52,98,.07);
-  border:1px solid rgba(230,52,98,.2);border-radius:20px;padding:1px 9px;}
-.vframe-sel-dot{width:5px;height:5px;border-radius:50%;background:var(--a);}
-.vframe-close{background:none;border:none;cursor:pointer;color:var(--m);
-  font-size:1.2rem;line-height:1;padding:0;flex-shrink:0;}
-.vframe-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:9px;padding:14px 18px;}
-.vov-card{border:1.5px solid var(--b);border-radius:10px;overflow:hidden;
-  cursor:pointer;transition:border-color .15s;position:relative;}
-.vov-card:hover{border-color:rgba(230,52,98,.4);}
-.vov-card.selected{border-color:var(--a);box-shadow:0 0 0 3px rgba(230,52,98,.1);}
-.vov-thumb{width:100%;aspect-ratio:16/9;background:#1a1a2e;position:relative;
-  overflow:hidden;}
-.vov-tint{position:absolute;inset:0;opacity:.25;}
-.vov-check{position:absolute;top:5px;right:5px;width:18px;height:18px;
-  background:var(--a);border-radius:50%;display:none;align-items:center;
-  justify-content:center;color:#fff;font-size:10px;font-weight:700;}
-.vov-card.selected .vov-check{display:flex;}
-.vov-body{padding:8px 10px 6px;}
-.vov-name{font-size:.8rem;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:2px;}
-.vov-team{font-size:.72rem;color:var(--m);}
-.vov-pick{display:block;width:calc(100% - 12px);margin:0 6px 7px;padding:5px 0;
-  background:var(--card);border:1px solid var(--b2);border-radius:8px;
-  font-size:.75rem;font-weight:500;color:var(--txt);cursor:pointer;
-  text-align:center;font-family:'DM Sans',sans-serif;transition:background .12s;}
-.vov-pick:hover{background:var(--ab);}
-.vov-card.selected .vov-pick{background:rgba(230,52,98,.07);
-  border-color:rgba(230,52,98,.35);color:var(--a);}
-.vframe-footer{padding:12px 18px 16px;border-top:1px solid var(--b);}
-.vframe-form{display:flex;gap:10px;align-items:center;margin-bottom:7px;}
-.vframe-email{flex:1;padding:10px 13px;border:1px solid var(--b);
-  border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;
-  background:var(--bg);color:var(--txt);outline:none;}
-.vframe-email:focus{border-color:var(--a);}
-.vframe-submit{padding:10px 22px;background:var(--a);color:#fff;border:none;
-  border-radius:9px;font-size:.9rem;font-weight:600;cursor:pointer;
-  font-family:'DM Sans',sans-serif;white-space:nowrap;}
-.vframe-submit:disabled{opacity:.4;cursor:not-allowed;}
-.vframe-hint{font-size:.75rem;color:var(--m);line-height:1.5;}
-@media(max-width:640px){
-  .vframe-inner{margin:0 12px;}
-  .vframe-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 14px;}
-  .vframe-hdr{padding:12px 14px;}
-  .vframe-footer{padding:10px 14px 14px;}
-  .vframe-form{flex-direction:column;align-items:stretch;}
-  .vframe-submit{width:100%;text-align:center;}
+/* ── GALLERY 확장 애니메이션 ── */
+#sec-gallery{
+  border:1.5px solid transparent;
+  border-radius:16px;
+  transition:border-color .35s ease,background .35s ease,padding .35s ease;
 }
-
-@media(max-width:400px){
-  .vframe-grid{grid-template-columns:1fr;}
+#sec-gallery.voting{
+  border-color:var(--a);
+  background:rgba(230,52,98,.03);
+  padding:16px 18px 18px;
 }
 
 /* ── 갤러리 카드 투표 오버레이 버튼 ── */
@@ -775,18 +721,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   align-items:center; justify-content:center; color:#fff;
   font-size:11px; font-weight:700; z-index:4; }
 .pcard.vov-selected .pcard-vcheck { display:flex; }
-
-/* ── GALLERY 확장 애니메이션 ── */
-#sec-gallery {
-  border: 1.5px solid transparent;
-  border-radius: 16px;
-  transition: border-color .35s ease, background .35s ease, padding .35s ease;
-}
-#sec-gallery.voting {
-  border-color: var(--a);
-  background: rgba(230,52,98,.03);
-  padding: 16px 18px 18px;
-}
 
 /* ── ADMIN VOTE RESULTS ── */
 .adm-vote-section{background:var(--card);border:1px solid var(--b);
@@ -1265,41 +1199,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
       
       </div>
       
-      <!-- dim + vote frame (갤러리 위 오버레이) -->
-      <div class="vframe-dim" id="vframe-dim"></div>
-      <div class="vframe-wrap" id="vframe-wrap">
-        <div class="vframe-inner">
-      
-          <div class="vframe-hdr">
-            <div class="vframe-hicon">🏆</div>
-            <div style="flex:1; min-width:0;">
-              <div class="vframe-htitle">
-                Select a project above
-                <span class="vframe-sel-pill" id="vframe-sel-pill" style="display:none;">
-                  <span class="vframe-sel-dot"></span>
-                  <span id="vframe-sel-name"></span>
-                </span>
-              </div>
-              <div class="vframe-hsub">Cast your vote for the project that impressed you most.
-                Open to the entire Taejae community — one vote per member.</div>
+      <!-- voting 상태 배너 -->
+      <div id="vb-voting" class="vote-banner-idle" style="display:none; flex-direction:column; gap:10px; border-color:rgba(230,52,98,.5); background:rgba(230,52,98,.03);">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="vote-banner-icon">🏆</div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:.95rem; font-weight:600; color:var(--a); margin-bottom:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              Select a project above
+              <span id="vb-sel-pill" style="display:none; align-items:center; gap:5px; font-size:.75rem; font-weight:500; color:var(--a); background:rgba(230,52,98,.07); border:1px solid rgba(230,52,98,.2); border-radius:20px; padding:1px 9px;">
+                <span style="width:5px; height:5px; border-radius:50%; background:var(--a); display:inline-block; flex-shrink:0;"></span>
+                <span id="vb-sel-name"></span>
+              </span>
             </div>
-            <button class="vframe-close" onclick="cancelVotingMode()" title="Cancel">✕</button>
+            <div style="font-size:.85rem; color:var(--m); line-height:1.5;">Cast your vote for the project that impressed you most. Open to the entire Taejae community — one vote per member.</div>
           </div>
-      
-          <div class="vframe-grid" id="vframe-grid"></div>
-      
-          <div class="vframe-footer">
-            <div class="vframe-form">
-              <input class="vframe-email" id="vb-email" type="email"
-                placeholder="your_id@taejae.ac.kr" autocomplete="email"
-                oninput="vbCheckReady()">
-              <button class="vframe-submit" id="vb-submit-btn" disabled onclick="vbSubmit()">Submit vote</button>
-            </div>
-            <div class="vframe-hint">🔒 Your email is converted to a one-way hash before saving —
-              the original address is never stored. Voting is fully anonymous.</div>
-          </div>
-      
+          <button onclick="cancelVotingMode()" style="background:none; border:none; cursor:pointer; color:var(--m); font-size:1.3rem; line-height:1; flex-shrink:0; padding:0;">✕</button>
         </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input class="vote-banner-email" id="vb-email" type="email" placeholder="your_id@taejae.ac.kr" autocomplete="email" oninput="vbCheckReady()">
+          <button class="vote-banner-submit" id="vb-submit-btn" disabled onclick="vbSubmit()">Submit vote</button>
+        </div>
+        <div style="font-size:.75rem; color:var(--m); line-height:1.5;">🔒 Your email is converted to a one-way hash before saving — the original address is never stored. Voting is fully anonymous.</div>
       </div>
     </div>
     <!-- LEADERBOARD -->
@@ -2258,62 +2178,49 @@ async function enterVotingMode() {
   await loadMyVotes(activeSem.id);
   const alreadyVotedId = appData.communityVotes[0] || null;
 
-  // vframe-grid에 카드 동적 렌더링
-  const grid = document.getElementById('vframe-grid');
-  grid.innerHTML = '';
-  const semProjects = appData.projects.filter(p => p.semester_id === activeSem.id);
-  semProjects.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'vov-card' + (p.id === alreadyVotedId ? ' selected' : '');
-    card.dataset.pid = p.id;
-    card.innerHTML = `
-      <div class="vov-thumb" style="background:#1a1a2e;">
-        <div class="vov-tint" style="background:${p.card_color || '#B5D4F4'};"></div>
-        <div class="vov-check">✓</div>
-      </div>
-      <div class="vov-body">
-        <div class="vov-name">${p.title}</div>
-        <div class="vov-team">${p.team_name || ''}</div>
-      </div>
-      <button class="vov-pick" onclick="vbPickCard(this.closest('.vov-card'));event.stopPropagation()">Select</button>`;
-    card.addEventListener('click', () => vbPickCard(card));
-    grid.appendChild(card);
-    if (p.id === alreadyVotedId) vbSelectedCard = card;
+  document.querySelectorAll('#ggrid .pcard').forEach(card => {
+    card.classList.add('voting-mode');
+    card.classList.remove('vov-selected');
+    if (!card.querySelector('.pcard-vote-btn')) {
+      const btn = document.createElement('div');
+      btn.className = 'pcard-vote-btn';
+      btn.innerHTML = `<button class="pcard-vote-inner" onclick="vbPickCard(this.closest('.pcard'));event.stopPropagation()">Select</button>`;
+      card.appendChild(btn);
+    }
+    if (!card.querySelector('.pcard-vcheck')) {
+      const vc = document.createElement('div');
+      vc.className = 'pcard-vcheck';
+      vc.textContent = '✓';
+      card.querySelector('.pthumb')?.appendChild(vc);
+    }
+    if (alreadyVotedId && card.dataset.pid === alreadyVotedId) {
+      card.classList.add('vov-selected');
+      vbSelectedCard = card;
+    }
   });
 
-  // vframe를 Gallery sec-hdr 바로 아래에 위치
-  const secGallery = document.getElementById('sec-gallery');
-  const secHdr = secGallery.querySelector('.sec-hdr');
-  const wrap = document.getElementById('vframe-wrap');
-  const hdrBottom = secHdr.getBoundingClientRect().bottom;
-  const secTop = secGallery.getBoundingClientRect().top;
-  wrap.style.top = (hdrBottom - secTop + secGallery.scrollTop) + 'px';
-  wrap.style.position = 'absolute';
-
-  secGallery.style.position = 'relative';
-  document.getElementById('vframe-dim').style.display = 'block';
-  wrap.style.display = 'block';
   document.getElementById('sec-gallery').classList.add('voting');
-
+  vbShowState('voting');
   vbUpdateSelPill();
   document.getElementById('vb-email').value = '';
   vbCheckReady();
 }
 
 function cancelVotingMode() {
-  document.getElementById('vframe-dim').style.display = 'none';
-  document.getElementById('vframe-wrap').style.display = 'none';
+  document.querySelectorAll('#ggrid .pcard').forEach(card => {
+    card.classList.remove('voting-mode', 'vov-selected');
+  });
   document.getElementById('sec-gallery').classList.remove('voting');
   vbSelectedCard = null;
   vbShowState(appData.communityVotes.length ? 'voted' : 'idle');
 }
 
 function vbPickCard(card) {
-  document.querySelectorAll('#vframe-grid .vov-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('#ggrid .pcard').forEach(c => c.classList.remove('vov-selected'));
   if (vbSelectedCard === card) {
     vbSelectedCard = null;
   } else {
-    card.classList.add('selected');
+    card.classList.add('vov-selected');
     vbSelectedCard = card;
   }
   vbUpdateSelPill();
@@ -2321,8 +2228,9 @@ function vbPickCard(card) {
 }
 
 function vbUpdateSelPill() {
-  const pill = document.getElementById('vframe-sel-pill');
-  const name = document.getElementById('vframe-sel-name');
+  const pill = document.getElementById('vb-sel-pill');
+  const name = document.getElementById('vb-sel-name');
+  if (!pill) return;
   if (vbSelectedCard) {
     const proj = appData.projects.find(p => p.id === vbSelectedCard.dataset.pid);
     name.textContent = proj?.title || '';
@@ -2391,8 +2299,9 @@ async function vbSubmit() {
 }
 
 function vbShowState(state) {
-  document.getElementById('vb-idle').style.display  = state === 'idle'  ? 'flex' : 'none';
-  document.getElementById('vb-voted').style.display = state === 'voted' ? 'flex' : 'none';
+  document.getElementById('vb-idle').style.display   = state === 'idle'   ? 'flex' : 'none';
+  document.getElementById('vb-voting').style.display = state === 'voting' ? 'flex' : 'none';
+  document.getElementById('vb-voted').style.display  = state === 'voted'  ? 'flex' : 'none';
 }
 
 // renderGallery()에서 bannerWrap 표시 시 초기 상태 설정 — 기존 코드에 1줄 추가
