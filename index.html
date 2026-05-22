@@ -2237,9 +2237,6 @@ async function loadMyVotes(semId) {
 let vbActiveSemId = null;
 let vbSelectedCard = null;
 
-let vbActiveSemId = null;
-let vbSelectedCard = null;
-
 async function enterVotingMode() {
   const activeSem = appData.semesters.find(s => s.status === 'active');
   if (!activeSem) return;
