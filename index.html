@@ -821,7 +821,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .vm-submit{flex-shrink:0;padding:11px 26px;background:var(--a);color:#fff;border:none;border-radius:10px;
   font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .vm-submit:disabled{opacity:.35;cursor:not-allowed;}
-.vm-note{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:.78rem;color:var(--m);line-height:1.5;}
+.vm-note{display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:11px 14px;
+  background:var(--ab);border:1px solid var(--b);border-radius:10px;
+  font-size:.92rem;color:var(--txt);line-height:1.6;}
+.vm-note .vm-note-icon{font-size:1rem;line-height:1.6;flex-shrink:0;}
+.vm-note strong{font-weight:600;}
 @media(max-width:640px){
   .vmodal{padding:0;}
   .vmodal-box{max-width:100%;max-height:100vh;height:100%;border-radius:0;}
@@ -924,8 +928,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
 .gl-row:hover{background:var(--ab);}
 .gl-thumb-sm{width:112px;height:63px;border-radius:7px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0;}
 .gl-tint{position:absolute;inset:0;opacity:.17;}
+.gl-thumb-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;}
+.gl-thumb-sm.has-video .gl-play{position:relative;z-index:2;width:24px;height:24px;border-radius:50%;
+  background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;}
 .gl-play{font-size:11px;color:rgba(255,255,255,.65);position:relative;z-index:1;}
-.gl-thumb-sm.has-video .gl-play{font-size:14px;color:#fff;}
 .gl-thumb-sm.no-video .gl-tint{opacity:.55;}
 .gl-thumb-sm.no-video .gl-play{font-family:'DM Serif Display',serif;font-size:.7rem;letter-spacing:.04em;opacity:1;}
 .gl-row-title{font-size:1rem;font-weight:500;color:var(--txt);line-height:1.3;margin-bottom:2px;}
@@ -1189,8 +1195,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
           <button class="vm-submit" id="vm-submit" disabled onclick="vmSubmit()">Vote</button>
         </div>
         <div class="vm-note" id="vm-email-note">
-          <span>🔒</span>
-          <span id="vm-note-txt">Your email is hashed before saving — the original address is never stored. It is used only to prevent double voting.</span>
+          <span class="vm-note-icon">🔒</span>
+          <span id="vm-note-txt"><strong>Your email is never stored.</strong> It is converted to a one-way hash before saving, and used only to prevent double voting.</span>
         </div>
       </div>
     </div>
@@ -2218,6 +2224,7 @@ function renderGallery() {
       row.innerHTML = `
         <div class="gl-thumb-sm ${p.video_url ? 'has-video' : 'no-video'}">
           <div class="gl-tint" style="background:${p.card_color||'#e8f4f8'}"></div>
+          ${thumbImgHtml(p.video_url)}
           <span class="gl-play">${p.video_url ? '▶' : 'AIR'}</span>
         </div>
         <div>
@@ -2300,6 +2307,13 @@ function vbShowState(state) {
   }
 }
 
+function thumbImgHtml(url) {
+  const t = vmThumbFor(url);
+  return t
+    ? `<img class="gl-thumb-img" src="${t}" referrerpolicy="no-referrer" onerror="this.style.display='none'" alt="">`
+    : '';
+}
+
 function vmThumbFor(url) {
   const ytId = getYouTubeId(url || '');
   if (ytId) return `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
@@ -2349,9 +2363,9 @@ async function openVoteModal() {
   emailInput.value = savedEmail;
   emailInput.style.display = 'block';
   document.getElementById('vm-email-note').style.display = 'flex';
-  document.getElementById('vm-note-txt').textContent = savedEmail
-    ? 'Saved on this device. Change it here if you want to vote as someone else.'
-    : 'Your email is hashed before saving — the original address is never stored. It is used only to prevent double voting.';
+  document.getElementById('vm-note-txt').innerHTML = savedEmail
+    ? '<strong>Saved on this device.</strong> Your email is never stored on the server — only a one-way hash is. Change it here to vote as someone else.'
+    : '<strong>Your email is never stored.</strong> It is converted to a one-way hash before saving, and used only to prevent double voting.';
 
   const btn = document.getElementById('vm-submit');
   btn.textContent = 'Vote';
@@ -2654,6 +2668,7 @@ async function renderArchiveContent() {
         row.innerHTML = `
           <div class="gl-thumb-sm ${p.video_url ? 'has-video' : 'no-video'}">
             <div class="gl-tint" style="background:${p.card_color||'#e8f4f8'}"></div>
+            ${thumbImgHtml(p.video_url)}
             <span class="gl-play">${p.video_url ? '▶' : 'AIR'}</span>
           </div>
           <div>
@@ -2827,6 +2842,7 @@ function renderLB() {
             row.innerHTML = `
               <div class="gl-thumb-sm ${proj.video_url ? 'has-video' : 'no-video'}">
                 <div class="gl-tint" style="background:${proj.card_color || '#e8f4f8'}"></div>
+                ${thumbImgHtml(proj.video_url)}
                 <span class="gl-play">${proj.video_url ? '▶' : 'AIR'}</span>
               </div>
               <div>
