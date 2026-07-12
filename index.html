@@ -777,36 +777,58 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
   .vb-form-row{flex-direction:column;gap:8px;}
 }
 
-/* ── GALLERY 확장 애니메이션 ── */
-#sec-gallery{
-  border:1.5px solid transparent;
-  border-radius:16px;
-  transition:border-color .35s ease,background .35s ease,padding .35s ease;
+/* ── VOTE PICKER MODAL ── */
+.vmodal{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;
+  padding:24px;background:rgba(26,26,46,.55);}
+.vmodal.open{display:flex;}
+.vmodal-box{width:100%;max-width:660px;max-height:88vh;background:var(--card);border-radius:18px;
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(26,26,46,.25);}
+.vmodal-hdr{display:flex;align-items:flex-start;gap:14px;padding:20px 24px 14px;flex-shrink:0;}
+.vmodal-hdr-icon{width:44px;height:44px;border-radius:50%;background:rgba(230,52,98,.08);
+  border:1.5px solid rgba(230,52,98,.2);display:flex;align-items:center;justify-content:center;
+  font-size:1.25rem;flex-shrink:0;}
+.vmodal-title{font-size:1.1rem;font-weight:600;color:var(--txt);margin-bottom:3px;}
+.vmodal-sub{font-size:.88rem;color:var(--m);line-height:1.55;}
+.vmodal-x{background:none;border:none;cursor:pointer;color:var(--m);font-size:1.35rem;line-height:1;
+  padding:4px;flex-shrink:0;opacity:.7;}
+.vmodal-x:hover{opacity:1;}
+.vmodal-body{flex:1;overflow-y:auto;padding:4px 24px 18px;}
+.vmgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.vmcard{border:1px solid var(--b);border-radius:12px;overflow:hidden;background:var(--bg);
+  cursor:pointer;transition:border-color .12s,box-shadow .12s;}
+.vmcard:hover{border-color:var(--b2);}
+.vmcard.sel{border:2px solid var(--a);box-shadow:0 0 0 3px rgba(230,52,98,.1);}
+.vmthumb{position:relative;width:100%;aspect-ratio:16/9;background:#1a1a2e;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;}
+.vmthumb img{width:100%;height:100%;object-fit:cover;}
+.vmthumb-air{font-family:'DM Serif Display',serif;font-size:.8rem;color:rgba(255,255,255,.45);
+  letter-spacing:.06em;}
+.vmcheck{position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:50%;
+  background:var(--a);color:#fff;font-size:12px;font-weight:700;display:none;
+  align-items:center;justify-content:center;}
+.vmcard.sel .vmcheck{display:flex;}
+.vmbody{padding:10px 12px 12px;}
+.vmtitle{font-size:.92rem;font-weight:600;line-height:1.35;color:var(--txt);margin-bottom:4px;}
+.vmcard.sel .vmtitle{color:var(--a);}
+.vmteam{font-size:.8rem;color:var(--m);line-height:1.4;}
+.vmtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
+.vmtag{font-size:.68rem;padding:2px 7px;border-radius:20px;background:var(--ab);color:var(--m);}
+.vmodal-foot{flex-shrink:0;border-top:1px solid var(--b);padding:14px 24px 16px;background:var(--card);}
+.vm-email-row{display:flex;gap:10px;align-items:center;}
+.vm-email-row input{flex:1;min-width:0;padding:11px 14px;border:1px solid var(--b);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.95rem;background:var(--bg);color:var(--txt);outline:none;}
+.vm-email-row input:focus{border-color:var(--a);}
+.vm-submit{flex-shrink:0;padding:11px 26px;background:var(--a);color:#fff;border:none;border-radius:10px;
+  font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.vm-submit:disabled{opacity:.35;cursor:not-allowed;}
+.vm-note{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:.78rem;color:var(--m);line-height:1.5;}
+@media(max-width:640px){
+  .vmodal{padding:0;}
+  .vmodal-box{max-width:100%;max-height:100vh;height:100%;border-radius:0;}
+  .vmgrid{grid-template-columns:1fr;}
+  .vm-email-row{flex-direction:column;align-items:stretch;}
+  .vm-submit{width:100%;}
 }
-#sec-gallery.voting{
-  border-color:var(--a);
-  background:rgba(230,52,98,.03);
-  padding:16px 18px 18px;
-}
-
-/* ── 갤러리 카드 투표 오버레이 버튼 ── */
-.pcard-vote-btn { display:none; position:absolute; bottom:0; left:0; right:0;
-  padding:0 10px 10px; z-index:3; }
-.voting-mode .pcard-vote-btn { display:block; }
-.pcard-vote-inner { width:100%; padding:7px 0; background:var(--card);
-  border:1px solid var(--b2); border-radius:9px; font-size:.82rem;
-  font-weight:500; color:var(--txt); cursor:pointer; text-align:center;
-  font-family:'DM Sans',sans-serif; transition:background .12s; }
-.pcard-vote-inner:hover { background:var(--ab); }
-.pcard.vov-selected { border:2px solid var(--a) !important;
-  box-shadow:0 0 0 3px rgba(230,52,98,.1); }
-.pcard.vov-selected .pcard-vote-inner { background:rgba(230,52,98,.07);
-  border-color:rgba(230,52,98,.35); color:var(--a); }
-.pcard-vcheck { position:absolute; top:8px; right:8px; width:22px;
-  height:22px; border-radius:50%; background:var(--a); display:none;
-  align-items:center; justify-content:center; color:#fff;
-  font-size:11px; font-weight:700; z-index:4; }
-.pcard.vov-selected .pcard-vcheck { display:flex; }
 
 /* ── ADMIN VOTE RESULTS ── */
 .adm-vote-section{background:var(--card);border:1px solid var(--b);
@@ -1147,6 +1169,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
     <button class="btn-exit" onclick="exitAdm()">Exit admin</button>
   </div>
 
+  <!-- ── VOTE PICKER MODAL ── -->
+  <div class="vmodal" id="vote-modal" onclick="if(event.target===this)closeVoteModal()">
+    <div class="vmodal-box" role="dialog" aria-modal="true" aria-labelledby="vmodal-title">
+      <div class="vmodal-hdr">
+        <div class="vmodal-hdr-icon">🏆</div>
+        <div style="flex:1;min-width:0;">
+          <div class="vmodal-title" id="vmodal-title">Outstanding presentation award</div>
+          <div class="vmodal-sub">Pick the project that impressed you most. You can change your vote any time before the semester closes.</div>
+        </div>
+        <button class="vmodal-x" onclick="closeVoteModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="vmodal-body">
+        <div class="vmgrid" id="vm-grid"></div>
+      </div>
+      <div class="vmodal-foot">
+        <div class="vm-email-row" id="vm-email-row">
+          <input id="vm-email" type="email" placeholder="your_id@taejae.ac.kr" autocomplete="email" oninput="vmCheckReady()">
+          <button class="vm-submit" id="vm-submit" disabled onclick="vmSubmit()">Vote</button>
+        </div>
+        <div class="vm-note" id="vm-email-note">
+          <span>🔒</span>
+          <span>Your email is hashed before saving — the original address is never stored. It is used only to prevent double voting.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
   <div class="modal-backdrop" id="picker-modal">
     <div class="modal-card">
@@ -1261,9 +1310,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
         <div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--m);font-size:.95rem;">Loading projects…</div>
       </div>
       <!-- VOTE BANNER -->
-      <div id="vote-banner-wrap" style="display:none; margin-top:1.5rem; position:relative;">
-      
-        <!-- idle -->
+      <div id="vote-banner-wrap" style="display:none; margin-top:1.5rem;">
+
         <div id="vb-idle" class="vote-banner-idle">
           <div class="vote-banner-icon">🏆</div>
           <div style="flex:1; min-width:0;">
@@ -1271,43 +1319,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font
             <div class="vote-banner-sub">Cast your vote for the project that impressed you most.
               Open to the entire Taejae community — one vote per member.</div>
           </div>
-          <button class="vote-banner-btn" onclick="enterVotingMode()">Cast your vote</button>
+          <button class="vote-banner-btn" onclick="openVoteModal()">Cast your vote</button>
         </div>
-      
-        <!-- voted -->
+
         <div id="vb-voted" class="vote-banner-voted">
           <div class="vote-banner-voted-icon">✓</div>
           <div style="flex:1; min-width:0;">
-            <div class="vote-banner-voted-title">Vote recorded</div>
+            <div class="vote-banner-voted-title" id="vb-voted-title">Vote recorded</div>
             <div class="vote-banner-voted-sub">Results revealed at end of semester</div>
           </div>
-          <button class="vote-banner-change" onclick="enterVotingMode()">Change my vote</button>
+          <button class="vote-banner-change" onclick="openVoteModal()">Change my vote</button>
         </div>
 
-        <!-- voting 상태 배너 -->
-      <div id="vb-voting" class="vote-banner-idle" style="display:none; flex-direction:column; gap:16px; border-color:rgba(230,52,98,.45); background:rgba(230,52,98,.03); padding:22px 28px;">
-        <!-- 상단: 아이콘 + 텍스트 + X -->
-        <div style="display:flex; align-items:center; gap:16px;">
-          <div class="vote-banner-icon" style="width:52px; height:52px; font-size:1.4rem; flex-shrink:0;">🏆</div>
-          <div style="flex:1; min-width:0;">
-            <div style="font-size:clamp(1rem,1.4vw,1.15rem); font-weight:600; color:var(--a); margin-bottom:5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              Select a project above
-              <span id="vb-sel-pill" style="display:none; align-items:center; gap:5px; font-size:.78rem; font-weight:500; color:var(--a); background:rgba(230,52,98,.07); border:1px solid rgba(230,52,98,.2); border-radius:20px; padding:2px 10px;">
-                <span style="width:5px; height:5px; border-radius:50%; background:var(--a); display:inline-block; flex-shrink:0;"></span>
-                <span id="vb-sel-name"></span>
-              </span>
-            </div>
-            <div style="font-size:.9rem; color:var(--m); line-height:1.6;">Cast your vote for the project that impressed you most. Open to the entire Taejae community — one vote per member.</div>
-          </div>
-          <button onclick="cancelVotingMode()" style="background:none; border:none; cursor:pointer; color:var(--m); font-size:1.4rem; line-height:1; flex-shrink:0; padding:4px; opacity:.7;" title="Cancel">✕</button>
-        </div>
-        <!-- 하단: 이메일 + submit -->
-        <div class="vb-form-row" style="display:flex; gap:12px; align-items:center;">
-          <input class="vote-banner-email" id="vb-email" type="email" placeholder="your_id@taejae.ac.kr" autocomplete="email" oninput="vbCheckReady()">
-          <button class="vote-banner-submit" id="vb-submit-btn" disabled onclick="vbSubmit()">Submit vote</button>
-        </div>
-        <div style="font-size:.82rem; color:var(--m); line-height:1.6;">🔒 Your email is converted to a one-way hash before saving — the original address is never stored. Voting is fully anonymous.</div>
-        </div>
       </div><!-- /vote-banner-wrap -->
     </div>
     <!-- LEADERBOARD -->
@@ -2258,145 +2281,148 @@ async function loadMyVotes(semId) {
   }
 }
   
-// ── COMMUNITY VOTE (inline, no modal) ──
+// ── COMMUNITY VOTE — picker modal ──
 
-let vbActiveSemId = null;
-let vbSelectedCard = null;
+let vmActiveSemId = null;
+let vmSelectedId  = null;
 
-async function enterVotingMode() {
+function vbShowState(state) {
+  const idle  = document.getElementById('vb-idle');
+  const voted = document.getElementById('vb-voted');
+  if (!idle || !voted) return;
+  const isVoted = state === 'voted';
+  idle.style.display  = isVoted ? 'none' : 'flex';
+  voted.style.display = isVoted ? 'flex' : 'none';
+  if (isVoted) {
+    const proj = appData.projects.find(p => p.id === appData.communityVotes[0]);
+    const t = document.getElementById('vb-voted-title');
+    if (t) t.textContent = proj ? `Voted — ${proj.title}` : 'Vote recorded';
+  }
+}
+
+function vmThumbFor(url) {
+  const ytId = getYouTubeId(url || '');
+  if (ytId) return `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+  const gdId = getGoogleDriveId(url || '');
+  if (gdId) return gdThumbUrl(gdId);
+  return '';
+}
+
+async function openVoteModal() {
   const activeSem = appData.semesters.find(s => s.status === 'active');
   if (!activeSem) return;
-  vbActiveSemId = activeSem.id;
-  vbSelectedCard = null;
+  vmActiveSemId = activeSem.id;
 
-  await loadMyVotes(activeSem.id);
-  const alreadyVotedId = appData.communityVotes[0] || null;
+  try { await loadMyVotes(activeSem.id); } catch (e) { /* 무시 */ }
+  vmSelectedId = appData.communityVotes[0] || null;
 
-  document.querySelectorAll('#ggrid .pcard').forEach(card => {
-    card.classList.add('voting-mode');
-    card.classList.remove('vov-selected');
-    if (!card.querySelector('.pcard-vote-btn')) {
-      const btn = document.createElement('div');
-      btn.className = 'pcard-vote-btn';
-      btn.innerHTML = `<button class="pcard-vote-inner" onclick="vbPickCard(this.closest('.pcard'));event.stopPropagation()">Select</button>`;
-      card.appendChild(btn);
-    }
-    if (!card.querySelector('.pcard-vcheck')) {
-      const vc = document.createElement('div');
-      vc.className = 'pcard-vcheck';
-      vc.textContent = '✓';
-      card.querySelector('.pthumb')?.appendChild(vc);
-    }
-    if (alreadyVotedId && card.dataset.pid === alreadyVotedId) {
-      card.classList.add('vov-selected');
-      vbSelectedCard = card;
-    }
+  const grid = document.getElementById('vm-grid');
+  grid.innerHTML = '';
+  appData.projects.forEach(p => {
+    const thumb = vmThumbFor(p.video_url);
+    const card = document.createElement('div');
+    card.className = 'vmcard' + (p.id === vmSelectedId ? ' sel' : '');
+    card.dataset.pid = p.id;
+    card.onclick = () => vmPick(p.id);
+    card.innerHTML = `
+      <div class="vmthumb" style="background:${p.card_color || '#1a1a2e'}">
+        ${thumb
+          ? `<img src="${thumb}" referrerpolicy="no-referrer" onerror="this.style.display='none'" alt="">`
+          : '<span class="vmthumb-air">AIR</span>'}
+        <div class="vmcheck">✓</div>
+      </div>
+      <div class="vmbody">
+        <div class="vmtitle">${escapeHtml(p.title)}</div>
+        <div class="vmteam">${p.member_names?.length
+          ? escapeHtml(p.member_names.join(', '))
+          : escapeHtml(p.team_name || '')}</div>
+        <div class="vmtags">${(p.tags || []).slice(0, 3)
+          .map(t => `<span class="vmtag">${escapeHtml(t)}</span>`).join('')}</div>
+      </div>`;
+    grid.appendChild(card);
   });
 
-  document.getElementById('sec-gallery').classList.add('voting');
-  vbShowState('voting');
-  vbUpdateSelPill();
-  document.getElementById('vb-email').value = '';
-  vbCheckReady();
+  // 이미 투표한 적 있으면 이메일을 다시 묻지 않음 (저장된 해시 재사용)
+  const savedHash = localStorage.getItem('airshow_vote_email_hash');
+  document.getElementById('vm-email').style.display      = savedHash ? 'none' : 'block';
+  document.getElementById('vm-email-note').style.display = savedHash ? 'none' : 'flex';
+  document.getElementById('vm-email').value = '';
+
+  const btn = document.getElementById('vm-submit');
+  btn.textContent = 'Vote';
+  vmCheckReady();
+
+  document.getElementById('vote-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
-function cancelVotingMode() {
-  document.querySelectorAll('#ggrid .pcard').forEach(card => {
-    card.classList.remove('voting-mode', 'vov-selected');
-  });
-  document.getElementById('sec-gallery').classList.remove('voting');
-  vbSelectedCard = null;
-  vbShowState(appData.communityVotes.length ? 'voted' : 'idle');
+function closeVoteModal() {
+  document.getElementById('vote-modal').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
-function vbPickCard(card) {
-  document.querySelectorAll('#ggrid .pcard').forEach(c => c.classList.remove('vov-selected'));
-  if (vbSelectedCard === card) {
-    vbSelectedCard = null;
-  } else {
-    card.classList.add('vov-selected');
-    vbSelectedCard = card;
-  }
-  vbUpdateSelPill();
-  vbCheckReady();
+function vmPick(pid) {
+  vmSelectedId = (vmSelectedId === pid) ? null : pid;
+  document.querySelectorAll('#vm-grid .vmcard').forEach(c =>
+    c.classList.toggle('sel', c.dataset.pid === vmSelectedId));
+  vmCheckReady();
 }
 
-function vbUpdateSelPill() {
-  const pill = document.getElementById('vb-sel-pill');
-  const name = document.getElementById('vb-sel-name');
-  if (!pill) return;
-  if (vbSelectedCard) {
-    const proj = appData.projects.find(p => p.id === vbSelectedCard.dataset.pid);
-    name.textContent = proj?.title || '';
-    pill.style.display = 'inline-flex';
-  } else {
-    pill.style.display = 'none';
-  }
+function vmCheckReady() {
+  const savedHash = localStorage.getItem('airshow_vote_email_hash');
+  const email = document.getElementById('vm-email').value.trim();
+  const emailOk = !!savedHash || (email.includes('@') && email.includes('.'));
+  document.getElementById('vm-submit').disabled = !(vmSelectedId && emailOk);
 }
 
-function vbCheckReady() {
-  const email = document.getElementById('vb-email').value.trim();
-  const ok = vbSelectedCard && email.includes('@') && email.includes('.');
-  document.getElementById('vb-submit-btn').disabled = !ok;
-}
-
-async function vbSubmit() {
-  const email = document.getElementById('vb-email').value.trim();
-  if (!email || !email.includes('@')) { showToast('Please enter a valid email address.'); return; }
-  if (!vbSelectedCard) { showToast('Please select a project.'); return; }
-
-  const btn = document.getElementById('vb-submit-btn');
+async function vmSubmit() {
+  if (!vmSelectedId || !vmActiveSemId) return;
+  const btn = document.getElementById('vm-submit');
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
   try {
-    const emailHash = await hashEmail(email);
+    let emailHash = localStorage.getItem('airshow_vote_email_hash');
+    if (!emailHash) {
+      const email = document.getElementById('vm-email').value.trim();
+      if (!email.includes('@')) { showToast('Please enter a valid email address.'); return; }
+      emailHash = await hashEmail(email);
+    }
 
-    // 1) voter_token 기준 기존 투표 삭제
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/${TBL_VOTES}` +
-      `?voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}&semester_id=eq.${vbActiveSemId}`,
-      { method: 'DELETE', headers: sbAnonHeaders() }
-    );
+    const h = sbAnonHeaders();
+    // 같은 브라우저(토큰) / 같은 사람(이메일 해시)의 기존 표 제거 → 항상 1인 1표
+    await fetch(`${SUPABASE_URL}/rest/v1/${TBL_VOTES}` +
+      `?voter_token=eq.${encodeURIComponent(VOTER_TOKEN)}&semester_id=eq.${vmActiveSemId}`,
+      { method: 'DELETE', headers: h });
+    await fetch(`${SUPABASE_URL}/rest/v1/${TBL_VOTES}` +
+      `?voter_email_hash=eq.${encodeURIComponent(emailHash)}&semester_id=eq.${vmActiveSemId}`,
+      { method: 'DELETE', headers: h });
 
-    // 2) 동일 이메일 해시 기준 기존 투표 삭제 (다른 브라우저 대응)
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/${TBL_VOTES}` +
-      `?voter_email_hash=eq.${encodeURIComponent(emailHash)}&semester_id=eq.${vbActiveSemId}`,
-      { method: 'DELETE', headers: sbAnonHeaders() }
-    );
-
-    // 3) 새 투표 insert
     await sbInsert(TBL_VOTES, {
-      project_id: vbSelectedCard.dataset.pid,
-      voter_token: VOTER_TOKEN,
+      project_id:       vmSelectedId,
+      voter_token:      VOTER_TOKEN,
       voter_email_hash: emailHash,
-      semester_id: vbActiveSemId,
+      semester_id:      vmActiveSemId,
     });
 
-    // 4) 해시만 로컬 저장 (이메일 원문 저장 안 함)
     localStorage.setItem('airshow_vote_email_hash', emailHash);
+    appData.communityVotes = [vmSelectedId];
 
-    appData.communityVotes = [vbSelectedCard.dataset.pid];
-    document.querySelectorAll('#ggrid .pcard').forEach(c =>
-      c.classList.remove('voting-mode', 'vov-selected'));
-    vbSelectedCard = null;
-    document.getElementById('sec-gallery').classList.remove('voting');
-    vbShowState('voted');
-    showToast('Your vote has been submitted. Thank you!');
+    closeVoteModal();
+    showToast('Your vote has been recorded. Thank you!');
     await loadAll();
   } catch (err) {
-    btn.disabled = false;
-    btn.textContent = 'Submit vote';
     showToast('Error: ' + err.message);
+  } finally {
+    btn.textContent = 'Vote';
+    btn.disabled = false;
   }
 }
 
-function vbShowState(state) {
-  document.getElementById('vb-idle').style.display   = state === 'idle'   ? 'flex' : 'none';
-  document.getElementById('vb-voting').style.display = state === 'voting' ? 'flex' : 'none';
-  document.getElementById('vb-voted').style.display  = state === 'voted'  ? 'flex' : 'none';
-}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' &&
+      document.getElementById('vote-modal')?.classList.contains('open')) closeVoteModal();
+});
 
 // renderGallery()에서 bannerWrap 표시 시 초기 상태 설정 — 기존 코드에 1줄 추가
 // 기존: bannerWrap.style.display = (activeSem && !isAdm) ? 'block' : 'none';
