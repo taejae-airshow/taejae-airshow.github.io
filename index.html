@@ -45,12 +45,40 @@ function getGoogleDriveId(url) {
 function gdEmbedUrl(id) { return `https://drive.google.com/file/d/${id}/preview`; }
 function gdThumbUrl(id) { return `https://drive.google.com/thumbnail?id=${id}&sz=w640`; }
 
+// Google Drive 원본(새 탭) URL — 모바일에서 임베드가 안 될 때 우회 재생용
+function gdViewUrl(id) { return `https://drive.google.com/file/d/${id}/view`; }
+
+// 모바일 여부 (모바일에서는 Drive 임베드가 불안정)
+function isMobileVideo() {
+  const ua = navigator.userAgent || '';
+  if (/Android|iPhone|iPad|iPod|Mobile|Silk/i.test(ua)) return true;
+  return (navigator.maxTouchPoints > 1) && window.matchMedia('(max-width: 768px)').matches;
+}
+
+// 모바일 Drive 대체 패널 (새 탭 재생 버튼)
+function gdFallbackInner(id) {
+  const u = gdViewUrl(id);
+  return `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:22px;background:#111;">
+    <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;">▶</div>
+    <div style="font-size:.88rem;color:rgba(255,255,255,.82);line-height:1.55;max-width:280px;">This video plays on Google Drive.<br>Tap below to watch it in a new tab.</div>
+    <a href="${u}" target="_blank" rel="noopener" style="background:var(--a);color:#fff;text-decoration:none;padding:10px 22px;border-radius:10px;font-size:.9rem;font-weight:600;">▶ Play on Google Drive ↗</a>
+  </div>`;
+}
+
 // 썸네일 컨테이너를 그 자리에서 iframe 플레이어로 교체 (새 탭 열지 않음)
 function playInline(el, url) {
   if (!el || !url) return;
   const ytId = getYouTubeId(url);
   const gdId = getGoogleDriveId(url);
   const odUrl = getOneDriveEmbedUrl(url);
+
+  // 모바일 + Google Drive: iframe 재생이 불안정하므로 탭 링크(새 탭)로 안내
+  if (gdId && isMobileVideo()) {
+    el.innerHTML = gdFallbackInner(gdId);
+    el.style.cursor = 'default';
+    return;
+  }
+
   let src = null;
   if (gdId)       src = gdEmbedUrl(gdId);
   else if (ytId)  src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
@@ -84,6 +112,21 @@ function playVideo(url) {
   const activeWrap = document.querySelector('.page.active .dvideo-wrap');
   if (!activeWrap) return;
 
+  // 모바일 + Google Drive: 임베드 대신 새 탭에서 재생 (모바일 임베드 불안정)
+  if (gdId && isMobileVideo()) {
+    const panel = document.createElement('div');
+    panel.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;background:#111;border-radius:16px;overflow:hidden;';
+    panel.innerHTML = gdFallbackInner(gdId) +
+      `<button onclick="closeInlineVideo(this)"
+        style="position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;
+        background:rgba(0,0,0,.6);border:none;color:#fff;font-size:1rem;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>`;
+    activeWrap._originalContent = activeWrap.innerHTML;
+    activeWrap.innerHTML = '';
+    activeWrap.appendChild(panel);
+    return;
+  }
+
   let embedHtml = '';
   if (ytId) {
     embedHtml = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0"
@@ -115,6 +158,15 @@ function playVideo(url) {
   activeWrap._originalContent = activeWrap.innerHTML;
   activeWrap.innerHTML = '';
   activeWrap.appendChild(player);
+
+  // Google Drive(데스크톱): 임베드 실패 대비 새 탭 열기 링크 상시 노출
+  if (gdId) {
+    const fb = document.createElement('div');
+    fb.style.cssText = 'margin-top:8px;text-align:center;';
+    fb.innerHTML = `<a href="${gdViewUrl(gdId)}" target="_blank" rel="noopener"
+      style="font-size:.8rem;color:var(--m);text-decoration:none;">Can't play? Open in Google Drive ↗</a>`;
+    activeWrap.appendChild(fb);
+  }
 }
 
 function closeInlineVideo(btn) {
@@ -153,10 +205,12 @@ function embedVideoPreview(wrapSelector, url) {
   }
 
   if (gdId) {
-    // Google Drive — 프레임 안에서 바로 재생
+    // Google Drive — 데스크톱은 프레임 재생, 모바일은 새 탭 안내(임베드 불안정)
     const player = document.createElement('div');
     player.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;';
-    player.innerHTML = `<iframe src="${gdEmbedUrl(gdId)}"
+    player.innerHTML = isMobileVideo()
+      ? gdFallbackInner(gdId)
+      : `<iframe src="${gdEmbedUrl(gdId)}"
       style="position:absolute;inset:0;width:100%;height:100%;border:none;"
       allow="autoplay; fullscreen" allowfullscreen></iframe>`;
     wrap._originalContent = wrap.innerHTML;
