@@ -1929,7 +1929,7 @@ async function openEditModal(mode, idx, proj) {
     try {
       const members = await Promise.all(
         proj.member_ids.map(id =>
-          sbGet(TBL_STUDENTS, `id=eq.${encodeURIComponent(id)}&select=id,name_en,email`)
+          sbGet(TBL_STUDENTS, `id=eq.${encodeURIComponent(id)}&select=id,name_en`)
             .then(rows => rows[0] || null)
             .catch(() => null)
         )
@@ -2164,7 +2164,7 @@ function formatFacultyName(f) {
 }
 
 function formatStudentName(s) {
-  return s.name_en || s.email || s.id || '';
+  return s.name_en || s.id || '';
 }
 
 async function openFacultyPicker() {
@@ -2220,7 +2220,7 @@ async function openStudentPicker() {
   try {
     studentList = await sbGet(
       TBL_STUDENTS,
-      'select=id,name_en,email&order=name_en.asc'
+      'select=id,name_en&order=name_en.asc'
     );
 
     renderStudentPicker();
@@ -2246,7 +2246,7 @@ function renderStudentPicker() {
         <input type="checkbox" data-picker-index="${i}" ${checked}>
         <div>
           <div class="modal-main">${formatStudentName(s)}</div>
-          <div class="modal-sub">${s.id || ''}${s.email ? ' · ' + s.email : ''}</div>
+          <div class="modal-sub">${s.id || ''}</div>
         </div>
       </label>
     `;
@@ -3178,7 +3178,7 @@ async function openViewPage(idx, proj) {
     try {
       const members = await Promise.all(
         proj.member_ids.map(id =>
-          sbGet(TBL_STUDENTS, `id=eq.${encodeURIComponent(id)}&select=id,name_en,email`)
+          sbGet(TBL_STUDENTS, `id=eq.${encodeURIComponent(id)}&select=id,name_en`)
             .then(rows => rows[0] || null).catch(() => null)
         )
       );
